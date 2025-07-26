@@ -10,6 +10,14 @@
 !.yarn/releases
 !.yarn/versions
 
+
+my_files.txt
+过程记录.md
+gg.bat
+start_repo.bat 
+
+
+
 # testing
 /coverage
 

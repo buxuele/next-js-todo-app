@@ -1,0 +1,31 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Todo {
+  id          Int       @id @default(autoincrement())
+  content     String
+  completed   Boolean   @default(false)
+  orderNum    Int       @default(0)
+  date        String    // YYYY-MM-DD format
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+  
+  @@index([date])
+  @@index([date, orderNum])
+}
+
+model DateAlias {
+  id        Int      @id @default(autoincrement())
+  date      String   @unique // YYYY-MM-DD format
+  alias     String
+  createdAt DateTime @default(now())
+}
