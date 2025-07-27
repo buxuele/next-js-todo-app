@@ -1,0 +1,32 @@
+/* Context menu styles - exact match to Flask version */
+.contextMenu {
+  position: fixed;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 120px;
+  padding: 4px 0;
+  display: none;
+}
+
+.contextMenuItem {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.contextMenuItem:hover {
+  background-color: #f5f5f5;
+}
+
+.contextMenuItemDanger {
+  color: #dc3545;
+}
+
+.contextMenuItemDanger:hover {
+  background-color: #f8d7da;
+}

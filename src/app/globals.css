@@ -1,3 +1,6 @@
+/* Import utility classes */
+@import "../styles/utilities.css";
+
 @font-face {
   font-family: "MaruSC";
   src: url("/fonts/975MaruSC-Medium.ttf") format("truetype");

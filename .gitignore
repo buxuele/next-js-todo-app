@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+.kiro/
+.next/
+
 
 my_files.txt
 过程记录.md

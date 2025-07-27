@@ -1,0 +1,91 @@
+.errorMessage {
+  border-radius: 6px;
+  border: 1px solid #f5c6cb;
+  background-color: #f8d7da;
+  color: #721c24;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.errorContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.errorIcon {
+  color: #dc3545;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.errorText {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.errorActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.retryButton,
+.dismissButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: #721c24;
+}
+
+.retryButton:hover {
+  background-color: rgba(114, 28, 36, 0.1);
+  color: #5a1a1a;
+}
+
+.dismissButton:hover {
+  background-color: rgba(114, 28, 36, 0.1);
+  color: #5a1a1a;
+}
+
+/* Variant styles */
+.inline {
+  margin: 12px 0;
+}
+
+.banner {
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+
+.modal {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

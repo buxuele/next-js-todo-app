@@ -1,0 +1,212 @@
+.searchResults {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.searchingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e9ecef;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.emptyState,
+.noResults {
+  text-align: center;
+  padding: 60px 40px;
+  color: #6c757d;
+}
+
+.searchIcon,
+.noResultsIcon {
+  margin: 0 auto 20px;
+  color: #dee2e6;
+}
+
+.emptyState h3,
+.noResults h3 {
+  margin: 0 0 8px 0;
+  color: #495057;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.emptyState p,
+.noResults p {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.searchTip,
+.searchSuggestions {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: left;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.searchTip strong,
+.searchSuggestions strong {
+  color: #495057;
+}
+
+.searchSuggestions ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+}
+
+.searchSuggestions li {
+  margin-bottom: 4px;
+}
+
+.resultsHeader {
+  padding: 20px 24px;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.resultsHeader h3 {
+  margin: 0 0 4px 0;
+  color: #495057;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.resultCount {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.resultsList {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.resultItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f3f4;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.resultItem:hover {
+  background-color: #f8f9fa;
+}
+
+.resultItem:last-child {
+  border-bottom: none;
+}
+
+.resultItem.completed {
+  opacity: 0.7;
+}
+
+.resultItem.completed .todoText {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.resultContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.todoText {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.highlight {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1px 2px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.resultMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.resultDate {
+  font-weight: 500;
+  color: #495057;
+}
+
+.resultTime {
+  color: #6c757d;
+}
+
+.completedBadge {
+  background: #d4edda;
+  color: #155724;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.resultActions {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.resultItem:hover .resultActions {
+  opacity: 1;
+}
+
+.copyButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.copyButton:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}

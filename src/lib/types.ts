@@ -16,7 +16,12 @@ export interface DateAlias {
 }
 
 export interface TodoCounts {
-  [date: string]: number;
+  [date: string]: {
+    total: number;
+    completed: number;
+    pending: number;
+    alias?: string;
+  };
 }
 
 export interface SearchResult extends Todo {

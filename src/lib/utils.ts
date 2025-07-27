@@ -32,7 +32,7 @@ export function validateDateFormat(dateStr: string): boolean {
 
   try {
     const date = new Date(dateStr + "T00:00:00");
-    return !isNaN(date.getTime()) && dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
+    return !isNaN(date.getTime()) && !!dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
   } catch {
     return false;
   }

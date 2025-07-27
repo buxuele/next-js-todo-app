@@ -1,0 +1,135 @@
+.todoItem {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.todoItem:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.todoItem.completed {
+  opacity: 0.7;
+  background-color: #f8f9fa;
+}
+
+.todoItem.completed .todoText {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.todoContent {
+  flex: 1;
+  margin-bottom: 10px;
+}
+
+.todoText {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  min-height: 21px;
+  padding: 5px 0;
+}
+
+.editTextarea {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+  overflow: hidden;
+  min-height: 31px;
+}
+
+.editTextarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.todoActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.todoItem:hover .todoActions {
+  opacity: 1;
+}
+
+.copyButton,
+.deleteButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.copyButton:hover {
+  background-color: #e9ecef;
+}
+
+.deleteButton:hover {
+  background-color: #f8d7da;
+}
+
+.copyFeedback {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  background: #28a745;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.copyFeedback::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  border: 5px solid transparent;
+  border-top-color: #28a745;
+}
+
+.todoMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 5px;
+  padding-top: 8px;
+  border-top: 1px solid #e9ecef;
+}
+
+.timestamp {
+  font-weight: 500;
+}
+
+.completedTime {
+  color: #28a745;
+  font-weight: 500;
+}

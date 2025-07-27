@@ -1,0 +1,101 @@
+/* Main layout styles - exact match to Flask version */
+.mainContent {
+  flex: 1;
+  padding: 48px;
+  overflow-y: auto;
+}
+
+.container {
+  background: #fff7ed;
+  border: 1px solid #000;
+  border-radius: 16px;
+  box-shadow: 0 0 16px #f5c16c33;
+  max-width: none;
+  margin: 0;
+  padding: 40px 36px 36px 36px;
+  height: fit-content;
+}
+
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.headerTitle {
+  margin-bottom: 0;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.searchSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.searchInput {
+  width: 300px;
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  font-weight: normal;
+  line-height: 1.4;
+}
+
+.addTodoForm {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.addTodoTextarea {
+  resize: vertical;
+  min-height: 76px;
+  font-size: 1.2rem;
+  padding: 16px 20px;
+  flex: 1;
+}
+
+.addTodoButton {
+  min-width: 120px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: 0;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive styles - exact match to Flask version */
+@media (max-width: 600px) {
+  .mainContent {
+    padding: 16px 4px;
+  }
+
+  .headerSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .addTodoForm {
+    flex-direction: column;
+  }
+
+  .addTodoButton {
+    height: auto;
+    padding: 12px;
+  }
+}
