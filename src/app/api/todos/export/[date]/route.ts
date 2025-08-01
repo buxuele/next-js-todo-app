@@ -10,11 +10,16 @@ export async function GET(
   try {
     const { date } = await params;
 
-    // Validate date format
+    // Validate date format - accept both YYYY-MM-DD and copy-YYYYMMDD-timestamp formats
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(date)) {
+    const copyIdRegex = /^copy-\d{8}-\d+$/;
+
+    if (!dateRegex.test(date) && !copyIdRegex.test(date)) {
       return NextResponse.json(
-        { error: "Invalid date format. Use YYYY-MM-DD" },
+        {
+          error:
+            "Invalid date format. Use YYYY-MM-DD or copy-YYYYMMDD-timestamp",
+        },
         { status: 400 }
       );
     }
@@ -41,8 +46,18 @@ export async function GET(
       pendingTodos
     );
 
-    // Generate filename
-    const filename = `todos-${date}.md`;
+    // Generate filename in Flask format (MM.DD-todo.md)
+    let filename;
+    if (dateRegex.test(date)) {
+      // For regular dates, use MM.DD format
+      const dateObj = new Date(date + "T00:00:00");
+      const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      filename = `${month}.${day}-todo.md`;
+    } else {
+      // For copy identifiers, use the display name
+      filename = `${displayDate.replace(/\s+/g, "")}-todo.md`;
+    }
 
     // Return markdown as downloadable file
     return new NextResponse(markdown, {
@@ -75,67 +90,44 @@ function generateMarkdown(
   completedTodos: Todo[],
   pendingTodos: Todo[]
 ): string {
-  const totalTodos = completedTodos.length + pendingTodos.length;
-  const completionRate =
-    totalTodos > 0 ? Math.round((completedTodos.length / totalTodos) * 100) : 0;
+  // Format exactly like Flask app
+  let content = `# ${displayDate} Todo\n\n`;
 
-  let markdown = `# Todo List - ${displayDate}\n\n`;
+  if (pendingTodos.length === 0 && completedTodos.length === 0) {
+    content += "今日无任务\n";
+  } else {
+    if (pendingTodos.length > 0) {
+      content += "## 待完成\n\n";
+      for (const todo of pendingTodos) {
+        content += `- [ ] ${todo.content}\n`;
+      }
+      content += "\n";
+    }
 
-  // Add statistics
-  markdown += `## Statistics\n\n`;
-  markdown += `- **Total Tasks:** ${totalTodos}\n`;
-  markdown += `- **Completed:** ${completedTodos.length}\n`;
-  markdown += `- **Pending:** ${pendingTodos.length}\n`;
-  markdown += `- **Completion Rate:** ${completionRate}%\n\n`;
+    if (completedTodos.length > 0) {
+      content += "## 已完成\n\n";
+      for (const todo of completedTodos) {
+        content += `- [x] ${todo.content}\n`;
+      }
+      content += "\n";
+    }
 
-  // Add pending todos section
-  if (pendingTodos.length > 0) {
-    markdown += `## Pending Tasks (${pendingTodos.length})\n\n`;
-    pendingTodos.forEach((todo, index) => {
-      const time = new Date(todo.createdAt).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-      markdown += `${index + 1}. [ ] ${todo.content} *(${time})*\n`;
-    });
-    markdown += "\n";
+    const totalTodos = completedTodos.length + pendingTodos.length;
+    content += `---\n总计: ${totalTodos} 项任务，已完成: ${completedTodos.length} 项\n`;
   }
 
-  // Add completed todos section
-  if (completedTodos.length > 0) {
-    markdown += `## Completed Tasks (${completedTodos.length})\n\n`;
-    completedTodos.forEach((todo, index) => {
-      const createdTime = new Date(todo.createdAt).toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-      const completedTime = todo.completedAt
-        ? new Date(todo.completedAt).toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            hour12: true,
-          })
-        : "Unknown";
+  // Add creation timestamp like Flask app
+  content += `\n---\n创建时间: ${new Date()
+    .toLocaleString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    })
+    .replace(/\//g, "-")}\n`;
 
-      markdown += `${index + 1}. [x] ${
-        todo.content
-      } *(Created: ${createdTime}, Completed: ${completedTime})*\n`;
-    });
-    markdown += "\n";
-  }
-
-  // Add footer
-  markdown += `---\n\n`;
-  markdown += `*Exported on ${new Date().toLocaleString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  })}*\n`;
-
-  return markdown;
+  return content;
 }

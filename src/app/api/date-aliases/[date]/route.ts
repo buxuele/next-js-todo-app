@@ -10,11 +10,16 @@ export async function DELETE(
   try {
     const { date } = await params;
 
-    // Validate date format
+    // Validate date format - accept both YYYY-MM-DD and copy-YYYYMMDD-timestamp formats
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(date)) {
+    const copyIdRegex = /^copy-\d{8}-\d+$/;
+
+    if (!dateRegex.test(date) && !copyIdRegex.test(date)) {
       return NextResponse.json(
-        { error: "Invalid date format. Use YYYY-MM-DD" },
+        {
+          error:
+            "Invalid date format. Use YYYY-MM-DD or copy-YYYYMMDD-timestamp",
+        },
         { status: 400 }
       );
     }

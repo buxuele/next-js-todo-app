@@ -1,19 +1,34 @@
-/* Main layout styles - exact match to Flask version */
-.mainContent {
-  flex: 1;
-  padding: 48px;
-  overflow-y: auto;
+/* 应用根容器 */
+.appContainer {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #fff3e0 !important;
 }
 
+/* 主内容区域 */
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  padding: 20px;
+}
+
+/* 内容容器 */
 .container {
   background: #fff7ed;
   border: 1px solid #000;
   border-radius: 16px;
   box-shadow: 0 0 16px #f5c16c33;
-  max-width: none;
-  margin: 0;
+  width: 100%;
+  height: 100%;
   padding: 40px 36px 36px 36px;
-  height: fit-content;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .headerSection {

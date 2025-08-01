@@ -12,8 +12,6 @@ interface TodoContextType {
   setSidebarCollapsed: (collapsed: boolean) => void;
   todoCounts: TodoCounts;
   refreshTodoCounts: () => Promise<void>;
-  isSearchMode: boolean;
-  setIsSearchMode: (isSearchMode: boolean) => void;
   availableDates: string[];
   navigateToDate: (date: string) => void;
   navigateToToday: () => void;
@@ -35,8 +33,6 @@ export function TodoProvider({ children }: { children: ReactNode }) {
         setSidebarCollapsed: dateNavigation.setSidebarCollapsed,
         todoCounts: dateNavigation.todoCounts,
         refreshTodoCounts: dateNavigation.refreshTodoCounts,
-        isSearchMode: dateNavigation.isSearchMode,
-        setIsSearchMode: dateNavigation.setIsSearchMode,
         availableDates: dateNavigation.availableDates,
         navigateToDate: dateNavigation.navigateToDate,
         navigateToToday: dateNavigation.navigateToToday,

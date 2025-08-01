@@ -1,7 +1,8 @@
+/* Flask SearchResults - 完全一致 */
 .searchResults {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -86,9 +87,9 @@
 }
 
 .resultsHeader {
-  padding: 20px 24px;
+  padding: 20px 0;
   border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  margin-bottom: 20px;
 }
 
 .resultsHeader h3 {
@@ -104,26 +105,26 @@
 }
 
 .resultsList {
-  max-height: 500px;
+  flex: 1;
   overflow-y: auto;
 }
 
 .resultItem {
+  border: 1px solid #000 !important;
+  border-radius: 10px !important;
+  margin-bottom: 18px;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  padding: 12px 12px 12px 16px;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 16px 24px;
-  border-bottom: 1px solid #f1f3f4;
+  min-height: 39px;
+  background-color: #fff3e0 !important;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .resultItem:hover {
-  background-color: #f8f9fa;
-}
-
-.resultItem:last-child {
-  border-bottom: none;
+  background-color: #f8f9fa !important;
 }
 
 .resultItem.completed {
@@ -141,8 +142,8 @@
 }
 
 .todoText {
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 1.15rem;
+  line-height: 1.4;
   color: #333;
   margin-bottom: 8px;
   word-wrap: break-word;

@@ -1,0 +1,44 @@
+/* Flask App Layout - 完全一致 */
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: #fff3e0 !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-blend-mode: initial !important;
+  background-clip: initial !important;
+  background-color: #fff3e0 !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+.main {
+  flex: 1;
+  padding: 48px;
+  overflow-y: auto;
+  background: #fff3e0 !important;
+  background-image: none !important;
+  background-attachment: initial !important;
+  background-blend-mode: initial !important;
+  background-clip: initial !important;
+  background-color: #fff3e0 !important;
+  background-origin: initial !important;
+  background-position: initial !important;
+  background-repeat: initial !important;
+  background-size: initial !important;
+}
+
+.container {
+  background: #fff7ed;
+  border: 1px solid #000;
+  border-radius: 16px;
+  box-shadow: 0 0 16px #f5c16c33;
+  max-width: none;
+  margin: 0;
+  padding: 40px 36px 36px 36px;
+  height: fit-content;
+}

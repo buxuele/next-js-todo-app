@@ -17,8 +17,6 @@ interface UseDateNavigationReturn {
   setCurrentDate: (date: string) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  isSearchMode: boolean;
-  setIsSearchMode: (isSearchMode: boolean) => void;
   todoCounts: TodoCounts;
   refreshTodoCounts: () => Promise<void>;
   availableDates: string[];
@@ -31,7 +29,6 @@ interface UseDateNavigationReturn {
 export function useDateNavigation(): UseDateNavigationReturn {
   const [currentDate, setCurrentDate] = useState<string>(getCurrentDate());
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
-  const [isSearchMode, setIsSearchMode] = useState<boolean>(false);
   const [todoCounts, setTodoCounts] = useState<TodoCounts>({});
 
   // Fetch todo counts from API
@@ -74,7 +71,6 @@ export function useDateNavigation(): UseDateNavigationReturn {
   // Navigate to a specific date
   const navigateToDate = useCallback((date: string) => {
     setCurrentDate(date);
-    setIsSearchMode(false); // Exit search mode when navigating to a date
   }, []);
 
   // Navigate to today
@@ -103,9 +99,20 @@ export function useDateNavigation(): UseDateNavigationReturn {
     await fetchTodoCounts();
   }, [fetchTodoCounts]);
 
-  // Fetch todo counts on mount
+  // Fetch todo counts on mount and when data changes
   useEffect(() => {
     fetchTodoCounts();
+
+    // Listen for data changes from context menu operations
+    const handleDataChange = () => {
+      fetchTodoCounts();
+    };
+
+    window.addEventListener("todoCountsChanged", handleDataChange);
+
+    return () => {
+      window.removeEventListener("todoCountsChanged", handleDataChange);
+    };
   }, [fetchTodoCounts]);
 
   // Keyboard shortcuts for date navigation
@@ -139,11 +146,6 @@ export function useDateNavigation(): UseDateNavigationReturn {
         e.preventDefault();
         setSidebarCollapsed((prev) => !prev);
       }
-      // Toggle search mode with '/'
-      else if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        setIsSearchMode((prev) => !prev);
-      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
@@ -155,8 +157,6 @@ export function useDateNavigation(): UseDateNavigationReturn {
     setCurrentDate: navigateToDate,
     sidebarCollapsed,
     setSidebarCollapsed,
-    isSearchMode,
-    setIsSearchMode,
     todoCounts,
     refreshTodoCounts,
     availableDates,

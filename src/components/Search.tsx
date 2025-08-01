@@ -1,6 +1,6 @@
 "use client";
 
-import SearchBar from "./SearchBar";
+import { useState } from "react";
 import SearchResults from "./SearchResults";
 import { useSearch } from "@/hooks/useSearch";
 import { Todo } from "./TodoList";
@@ -11,14 +11,16 @@ interface SearchProps {
 }
 
 export default function Search({ onTodoSelect }: SearchProps) {
-  const {
-    searchResults,
-    currentQuery,
-    isSearching,
-    error,
-    performSearch,
-    clearSearch,
-  } = useSearch();
+  const [query, setQuery] = useState("");
+  const { searchResults, currentQuery, isSearching, error, performSearch } =
+    useSearch();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      performSearch(query.trim());
+    }
+  };
 
   const handleResultClick = (todo: Todo) => {
     onTodoSelect?.(todo);
@@ -26,23 +28,39 @@ export default function Search({ onTodoSelect }: SearchProps) {
 
   return (
     <div className={styles.searchContainer}>
-      <SearchBar
-        onSearch={performSearch}
-        onClear={clearSearch}
-        isSearching={isSearching}
-      />
+      <div className={styles.searchHeader}>
+        <h1 className={styles.searchTitle}>搜索 Todos</h1>
+
+        <form onSubmit={handleSubmit} className={styles.searchForm}>
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="输入关键词搜索任务..."
+            className={styles.searchInput}
+            disabled={isSearching}
+          />
+          <button
+            type="submit"
+            disabled={!query.trim() || isSearching}
+            className={styles.searchButton}
+          >
+            {isSearching ? "搜索中..." : "搜索"}
+          </button>
+        </form>
+      </div>
 
       {error && (
         <div className={styles.errorMessage}>
           <div className={styles.errorIcon}>⚠️</div>
           <div>
-            <strong>Search Error:</strong> {error}
+            <strong>搜索错误:</strong> {error}
           </div>
           <button
             onClick={() => performSearch(currentQuery)}
             className={styles.retryButton}
           >
-            Retry
+            重试
           </button>
         </div>
       )}

@@ -12,6 +12,8 @@
 
 .kiro/
 .next/
+.vscode/
+
 
 
 my_files.txt

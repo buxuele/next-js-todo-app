@@ -62,17 +62,10 @@ export default function ExportButton({
   };
 
   const getButtonText = () => {
-    if (isExporting) return "Exporting...";
-    if (exportStatus === "success") return "Exported!";
-    if (exportStatus === "error") return "Export Failed";
-    return "Export as Markdown";
-  };
-
-  const getButtonIcon = () => {
-    if (isExporting) return "⏳";
-    if (exportStatus === "success") return "✅";
-    if (exportStatus === "error") return "❌";
-    return "📄";
+    if (isExporting) return "导出中...";
+    if (exportStatus === "success") return "已导出";
+    if (exportStatus === "error") return "导出失败";
+    return "导出";
   };
 
   return (
@@ -82,10 +75,9 @@ export default function ExportButton({
       className={`${styles.exportButton} ${
         exportStatus === "success" ? styles.success : ""
       } ${exportStatus === "error" ? styles.error : ""}`}
-      title="Export todos as markdown file"
+      title="导出为Markdown文件"
     >
-      <span className={styles.icon}>{getButtonIcon()}</span>
-      <span className={styles.text}>{getButtonText()}</span>
+      {getButtonText()}
     </button>
   );
 }

@@ -1,9 +1,69 @@
+/* Flask Search - 完全一致 */
 .searchContainer {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px;
-  background-color: #f8f9fa;
+  width: 100%;
+}
+
+.searchHeader {
+  margin-bottom: 1.5rem;
+}
+
+.searchTitle {
+  margin: 0 0 1rem 0;
+  font-size: 2rem;
+  font-weight: bold;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  color: #333;
+}
+
+.searchForm {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.searchInput {
+  width: 300px;
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  font-weight: normal;
+  line-height: 1.4;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #fff3e0 !important;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.searchInput:focus {
+  border-color: #2979ff !important;
+  box-shadow: 0 0 0 1px #90caf9;
+  outline: none;
+  border-width: 1px;
+}
+
+.searchButton {
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  min-width: 54px;
+  font-weight: normal;
+  line-height: 1.4;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #0d6efd;
+  color: white;
+  cursor: pointer;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.searchButton:hover {
+  background-color: #0b5ed7;
+}
+
+.searchButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .errorMessage {

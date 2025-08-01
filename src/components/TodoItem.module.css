@@ -1,95 +1,134 @@
+/* Flask TodoItem - 完全一致 */
 .todoItem {
+  border: 1px solid #000 !important;
+  border-radius: 10px !important;
+  margin-bottom: 18px;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  padding: 12px 12px 12px 16px;
   display: flex;
-  flex-direction: column;
-  background: white;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
-  cursor: pointer;
-  position: relative;
-}
-
-.todoItem:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
-}
-
-.todoItem.completed {
-  opacity: 0.7;
-  background-color: #f8f9fa;
+  align-items: flex-start;
+  min-height: 39px;
+  background-color: #fff3e0 !important;
 }
 
 .todoItem.completed .todoText {
   text-decoration: line-through;
-  color: #6c757d;
+  color: #888;
 }
 
 .todoContent {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+  font-size: 1.15rem;
   flex: 1;
-  margin-bottom: 10px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  margin-right: 12px;
 }
 
 .todoText {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 1.15rem;
+  line-height: 1.4;
   color: #333;
   white-space: pre-wrap;
   word-wrap: break-word;
-  min-height: 21px;
-  padding: 5px 0;
+  cursor: pointer;
 }
 
 .editTextarea {
-  width: 100%;
-  padding: 5px;
-  border: 1px solid #007bff;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 1.5;
-  resize: none;
-  overflow: hidden;
-  min-height: 31px;
+  height: 100%;
+  padding: 0 8px;
+  font-size: 1.15rem;
+  margin-right: 8px;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 1 1 0%;
+  min-width: 60px;
+  margin-left: 0;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #fff3e0 !important;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
 }
 
 .editTextarea:focus {
+  border-color: #2979ff !important;
+  box-shadow: 0 0 0 1px #90caf9;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-width: 1px;
 }
 
+/* Time display - matches Flask exactly */
+.todoMeta {
+  font-size: 1.15rem;
+  color: #b77b00; /* Orange/brown color like Flask */
+  min-width: 120px;
+  text-align: right;
+  flex-shrink: 0;
+  align-self: flex-start;
+  line-height: 1.4;
+}
+
+/* Action buttons - matches Flask exactly */
 .todoActions {
+  margin-left: 8px;
+  margin-right: 0px;
+  margin-top: -6px;
   display: flex;
-  gap: 8px;
-  align-items: center;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  opacity: 0;
-  transition: opacity 0.2s;
+  flex-direction: row;
+  gap: 2px;
+  align-items: flex-start;
+  flex-shrink: 0;
+  width: 170px;
 }
 
-.todoItem:hover .todoActions {
-  opacity: 1;
-}
-
-.copyButton,
-.deleteButton {
-  background: none;
-  border: none;
+.actionButton {
+  white-space: nowrap;
+  text-align: center;
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  min-width: 54px;
+  flex-shrink: 0;
+  margin: 0;
+  font-weight: normal;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background: white;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: background-color 0.2s;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
 }
 
-.copyButton:hover {
-  background-color: #e9ecef;
+/* Copy button - gray */
+.actionButton:nth-child(1) {
+  background-color: #6c757d;
+  color: white;
 }
 
-.deleteButton:hover {
-  background-color: #f8d7da;
+.actionButton:nth-child(1):hover {
+  background-color: #5a6268;
+}
+
+/* Edit button - gray */
+.actionButton:nth-child(2) {
+  background-color: #6c757d;
+  color: white;
+}
+
+.actionButton:nth-child(2):hover {
+  background-color: #5a6268;
+}
+
+/* Delete button - RED like Flask */
+.actionButton:nth-child(3) {
+  background-color: #dc3545 !important;
+  color: white;
+}
+
+.actionButton:nth-child(3):hover {
+  background-color: #c82333 !important;
 }
 
 .copyFeedback {
@@ -103,33 +142,4 @@
   font-size: 12px;
   white-space: nowrap;
   z-index: 10;
-}
-
-.copyFeedback::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  right: 10px;
-  border: 5px solid transparent;
-  border-top-color: #28a745;
-}
-
-.todoMeta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #6c757d;
-  margin-top: 5px;
-  padding-top: 8px;
-  border-top: 1px solid #e9ecef;
-}
-
-.timestamp {
-  font-weight: 500;
-}
-
-.completedTime {
-  color: #28a745;
-  font-weight: 500;
 }

@@ -7,25 +7,50 @@ import { getTodosByDate, getNextOrderNum } from "@/lib/db-utils";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { fromDate, toDate, copyCompleted = false } = body;
+    const {
+      source_date,
+      target_date,
+      fromDate,
+      toDate,
+      copyCompleted = false,
+    } = body;
 
-    if (!fromDate || !toDate) {
+    // Support both Flask-style and Next.js-style parameter names
+    const sourceDate = source_date || fromDate;
+    const targetDate = target_date || toDate;
+
+    if (!sourceDate || !targetDate) {
       return NextResponse.json(
-        { error: "fromDate and toDate are required" },
+        { error: "source_date and target_date are required" },
         { status: 400 }
       );
     }
 
-    // Validate date formats
+    // Validate date formats - accept both YYYY-MM-DD and copy-YYYYMMDD-timestamp formats
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(fromDate) || !dateRegex.test(toDate)) {
+    const copyIdRegex = /^copy-\d{8}-\d+$/;
+
+    if (!dateRegex.test(sourceDate) && !copyIdRegex.test(sourceDate)) {
       return NextResponse.json(
-        { error: "Invalid date format. Use YYYY-MM-DD" },
+        {
+          error:
+            "Invalid source_date format. Use YYYY-MM-DD or copy-YYYYMMDD-timestamp",
+        },
         { status: 400 }
       );
     }
 
-    if (fromDate === toDate) {
+    if (!dateRegex.test(targetDate) && !copyIdRegex.test(targetDate)) {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid target_date format. Use YYYY-MM-DD or copy-YYYYMMDD-timestamp",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (sourceDate === targetDate) {
       return NextResponse.json(
         { error: "Source and destination dates cannot be the same" },
         { status: 400 }
@@ -33,13 +58,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get todos from source date
-    const sourceTodos = await getTodosByDate(fromDate);
+    const sourceTodos = await getTodosByDate(sourceDate);
 
     if (sourceTodos.length === 0) {
-      return NextResponse.json(
-        { error: "No todos found for the source date" },
-        { status: 404 }
-      );
+      // Even if no todos, create empty table for target date (like Flask version)
+      return NextResponse.json({
+        success: true,
+        message: `已复制 0 个任务`,
+        count: 0,
+      });
     }
 
     // Filter todos based on copyCompleted flag
@@ -47,18 +74,8 @@ export async function POST(request: NextRequest) {
       ? sourceTodos
       : sourceTodos.filter((todo) => !todo.completed);
 
-    if (todosToCreate.length === 0) {
-      return NextResponse.json(
-        {
-          error:
-            "No todos to copy (all are completed and copyCompleted is false)",
-        },
-        { status: 400 }
-      );
-    }
-
     // Get starting order number for destination date
-    let orderNum = await getNextOrderNum(toDate);
+    let orderNum = await getNextOrderNum(targetDate);
 
     // Create new todos for destination date
     const createdTodos = await withRetry(async () => {
@@ -67,7 +84,7 @@ export async function POST(request: NextRequest) {
           prisma.todo.create({
             data: {
               content: todo.content,
-              date: toDate,
+              date: targetDate,
               orderNum: orderNum++,
               completed: false, // Always create as incomplete
               completedAt: null,
@@ -78,9 +95,8 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({
-      success: true,
-      copiedCount: createdTodos.length,
-      todos: createdTodos,
+      message: `已复制 ${createdTodos.length} 个任务`,
+      count: createdTodos.length,
     });
   } catch (error) {
     console.error("Error copying todos:", error);

@@ -1,83 +1,144 @@
+/* Flask TodoList - 完全一致 */
 .todoList {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 20px;
-  background-color: #f8f9fa;
+  width: 100%;
 }
 
+/* Header section - matches Flask exactly */
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.headerTitle {
+  margin-bottom: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  flex-shrink: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.searchSection {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.searchInput {
+  width: 300px;
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  font-weight: normal;
+  line-height: 1.4;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #fff3e0 !important;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.searchButton {
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  min-width: 54px;
+  font-weight: normal;
+  line-height: 1.4;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #0d6efd;
+  color: white;
+  cursor: pointer;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.clearButton {
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  min-width: 54px;
+  font-weight: normal;
+  line-height: 1.4;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #6c757d;
+  color: white;
+  cursor: pointer;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+/* Add todo form - matches Flask exactly */
 .addTodoForm {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .newTodoInput {
+  resize: vertical;
+  min-height: 76px;
+  font-size: 1.2rem;
+  padding: 16px 20px;
   flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: inherit;
-  font-size: 14px;
-  resize: none;
-  min-height: 40px;
-  max-height: 120px;
-  overflow-y: auto;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #fff3e0 !important;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
 }
 
 .newTodoInput:focus {
+  border-color: #2979ff !important;
+  box-shadow: 0 0 0 1px #90caf9;
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-width: 1px;
 }
 
 .newTodoInput:disabled {
-  background-color: #f8f9fa;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
+/* Add button - matches Flask exactly */
 .addButton {
-  padding: 10px 20px;
-  background-color: #007bff;
+  min-width: 120px;
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: 0;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #0d6efd;
   color: white;
-  border: none;
-  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
 }
 
 .addButton:hover:not(:disabled) {
-  background-color: #0056b3;
+  background-color: #0b5ed7;
 }
 
 .addButton:disabled {
   background-color: #6c757d;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-}
-
 .todos {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .emptyState {
@@ -85,9 +146,11 @@
   color: #6c757d;
   font-style: italic;
   padding: 40px 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  border: 1px solid #000;
+  border-radius: 10px;
+  background-color: #fff3e0;
+  margin-bottom: 18px;
 }
 
 .loadingContainer {
@@ -95,12 +158,58 @@
   justify-content: center;
   align-items: center;
   height: 300px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin: 20px;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
 }
 
 .errorContainer {
   margin: 20px;
+}
+
+/* Search results styles */
+.searchResultsHeader {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.searchResultsHeader h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.searchResultsHeader p {
+  margin: 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.searchResultItem {
+  margin-bottom: 12px;
+}
+
+.searchResultMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.searchResultDate {
+  font-weight: 600;
+  color: #495057;
+  background: #e9ecef;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.searchResultTime {
+  color: #6c757d;
 }

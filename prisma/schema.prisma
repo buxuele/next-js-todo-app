@@ -12,20 +12,25 @@ datasource db {
 
 model Todo {
   id          Int       @id @default(autoincrement())
-  content     String
+  content     String    @db.Text // Allow longer content
   completed   Boolean   @default(false)
   orderNum    Int       @default(0)
-  date        String    // YYYY-MM-DD format
+  date        String    // YYYY-MM-DD format or copy-YYYYMMDD-timestamp format
   createdAt   DateTime  @default(now())
   completedAt DateTime?
   
+  // Optimized indexes for better performance
   @@index([date])
   @@index([date, orderNum])
+  @@index([date, completed])
+  @@index([createdAt])
 }
 
 model DateAlias {
   id        Int      @id @default(autoincrement())
-  date      String   @unique // YYYY-MM-DD format
-  alias     String
+  date      String   @unique // YYYY-MM-DD format or copy-YYYYMMDD-timestamp format
+  alias     String   @db.VarChar(200) // Increased limit for longer aliases
   createdAt DateTime @default(now())
+  
+  @@index([createdAt])
 }

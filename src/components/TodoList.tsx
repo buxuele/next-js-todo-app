@@ -8,6 +8,7 @@ import LoadingSpinner from "./LoadingSpinner";
 import ErrorMessage from "./ErrorMessage";
 import { useTodos } from "@/hooks/useTodos";
 import { useTodoContext } from "@/contexts/TodoContext";
+import { formatDateForDisplay } from "@/lib/utils";
 import styles from "./TodoList.module.css";
 
 export interface Todo {
@@ -35,6 +36,10 @@ export default function TodoList({
 
   const [newTodoContent, setNewTodoContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Todo[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const newTodoInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Add new todo using the hook
@@ -90,6 +95,44 @@ export default function TodoList({
     }
   };
 
+  // Handle search functionality
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `/api/todos/search?q=${encodeURIComponent(searchQuery.trim())}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        // API returns { query, results, count }, we need the results array
+        const results = data.results || data;
+        setSearchResults(results);
+        setShowSearchResults(true);
+        // Show clear button
+        const clearBtn = document.getElementById("clear-search-btn");
+        if (clearBtn) clearBtn.style.display = "inline-flex";
+      } else {
+        console.error("Search failed");
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Handle clear search
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowSearchResults(false);
+    // Hide clear button
+    const clearBtn = document.getElementById("clear-search-btn");
+    if (clearBtn) clearBtn.style.display = "none";
+  };
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -135,16 +178,58 @@ export default function TodoList({
 
   return (
     <div className={styles.todoList}>
+      {/* Header with title, export button, and search - matching Flask layout exactly */}
+      <div className={styles.headerSection}>
+        <h1 className={styles.headerTitle}>
+          {formatDateForDisplay(selectedDate)} Todo
+        </h1>
+        <div className={styles.headerActions}>
+          <ExportButton date={selectedDate} disabled={todos.length === 0} />
+          <div className={styles.searchSection}>
+            <input
+              type="text"
+              className={styles.searchInput}
+              placeholder="搜索任务..."
+              id="search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
+            />
+            <button
+              className={styles.searchButton}
+              onClick={handleSearch}
+              disabled={isSearching || !searchQuery.trim()}
+            >
+              {isSearching ? "搜索中..." : "搜索"}
+            </button>
+            <button
+              className={styles.clearButton}
+              style={{ display: showSearchResults ? "inline-flex" : "none" }}
+              id="clear-search-btn"
+              onClick={handleClearSearch}
+            >
+              清除
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Add todo form - matching Flask layout */}
       <form onSubmit={handleAddTodo} className={styles.addTodoForm}>
         <AutoResizeTextarea
           ref={newTodoInputRef}
           value={newTodoContent}
           onChange={(e) => setNewTodoContent(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Add a new todo..."
+          placeholder="添加新任务 (Shift+Enter换行，Enter提交)"
           className={styles.newTodoInput}
           disabled={isSubmitting}
-          minRows={1}
+          minRows={2}
           maxRows={5}
         />
         <button
@@ -152,19 +237,54 @@ export default function TodoList({
           disabled={!newTodoContent.trim() || isSubmitting}
           className={styles.addButton}
         >
-          {isSubmitting ? "Adding..." : "Add"}
+          {isSubmitting ? "添加中..." : "添加"}
         </button>
       </form>
 
-      <div className={styles.toolbar}>
-        <ExportButton date={selectedDate} disabled={todos.length === 0} />
-      </div>
-
+      {/* Todo list or search results */}
       <div className={styles.todos}>
-        {todos.length === 0 ? (
-          <div className={styles.emptyState}>
-            No todos for this date. Add one above!
-          </div>
+        {showSearchResults ? (
+          // Show search results
+          searchResults.length === 0 ? (
+            <div className={styles.emptyState}>
+              没有找到包含 &ldquo;{searchQuery}&rdquo; 的任务
+            </div>
+          ) : (
+            <>
+              <div className={styles.searchResultsHeader}>
+                <h3>搜索结果 ({searchResults.length} 个任务)</h3>
+                <p>搜索关键词: &ldquo;{searchQuery}&rdquo;</p>
+              </div>
+              {searchResults.map((todo) => (
+                <div
+                  key={`${todo.date}-${todo.id}`}
+                  className={styles.searchResultItem}
+                >
+                  <div className={styles.searchResultMeta}>
+                    <span className={styles.searchResultDate}>
+                      {formatDateForDisplay(todo.date)}
+                    </span>
+                    <span className={styles.searchResultTime}>
+                      {todo.createdAt
+                        ? new Date(todo.createdAt).toLocaleTimeString("zh-CN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </span>
+                  </div>
+                  <TodoItem
+                    todo={todo}
+                    onUpdate={handleTodoUpdate}
+                    onDelete={handleTodoDelete}
+                  />
+                </div>
+              ))}
+            </>
+          )
+        ) : // Show regular todos for selected date
+        todos.length === 0 ? (
+          <div className={styles.emptyState}>今日无任务，请在上方添加！</div>
         ) : (
           todos.map((todo) => (
             <TodoItem

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { ContextMenuOption } from "@/components/ContextMenu";
+import { formatDateForDisplay } from "@/lib/utils";
 
 interface ContextMenuState {
   isVisible: boolean;
@@ -67,34 +68,67 @@ export function useDateContextMenu(
 ): UseDateContextMenuReturn {
   const baseContextMenu = useContextMenu();
 
-  // Handle copying todos from one date to another
+  // Handle copying todos from one date to another using unique timestamp-based identifiers
   const handleCopyDateList = useCallback(
     async (fromDate: string) => {
-      const newDate = prompt("Enter the date to copy todos to (YYYY-MM-DD):");
-      if (!newDate) return;
-
       try {
+        // Generate unique timestamp-based identifier like Flask app
+        const timestamp = Date.now();
+        const today = new Date();
+        const datePrefix =
+          today.getFullYear() +
+          String(today.getMonth() + 1).padStart(2, "0") +
+          String(today.getDate()).padStart(2, "0");
+        const uniqueId = `copy-${datePrefix}-${timestamp}`;
+
+        // Get current display name for the source date
+        const aliasResponse = await fetch("/api/date-aliases");
+        const aliases = aliasResponse.ok ? await aliasResponse.json() : {};
+        const currentDisplayName =
+          aliases[fromDate] || formatDateForDisplay(fromDate);
+        const copyName = currentDisplayName + "-copy";
+
+        // Copy todos to unique identifier
         const response = await fetch("/api/todos/copy-date", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            fromDate,
-            toDate: newDate,
-            copyCompleted: false,
+            source_date: fromDate,
+            target_date: uniqueId,
           }),
         });
 
-        if (response.ok) {
-          alert("Todos copied successfully!");
-          onRefresh?.();
-        } else {
+        if (!response.ok) {
           const error = await response.json();
-          alert(`Failed to copy todos: ${error.error}`);
+          throw new Error(error.error || "Failed to copy todos");
         }
-      } catch {
-        alert("Failed to copy todos");
+
+        // Set alias for the new unique identifier
+        const aliasSetResponse = await fetch("/api/date-aliases", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            date: uniqueId,
+            alias: copyName,
+          }),
+        });
+
+        if (!aliasSetResponse.ok) {
+          console.warn("Failed to set alias for copied list");
+        }
+
+        alert(`已复制 "${currentDisplayName}" 为 "${copyName}"`);
+        onRefresh?.();
+      } catch (error) {
+        alert(
+          `复制失败: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
       }
     },
     [onRefresh]
@@ -103,8 +137,13 @@ export function useDateContextMenu(
   // Handle renaming a date (creating/updating alias)
   const handleRenameDate = useCallback(
     async (date: string) => {
-      const alias = prompt("Enter a new name for this date:");
-      if (!alias) return;
+      // Get current display name for the date
+      const aliasResponse = await fetch("/api/date-aliases");
+      const aliases = aliasResponse.ok ? await aliasResponse.json() : {};
+      const currentDisplayName = aliases[date] || formatDateForDisplay(date);
+
+      const alias = prompt(`请输入新的名称:`, currentDisplayName);
+      if (!alias || alias.trim() === "") return;
 
       try {
         const response = await fetch("/api/date-aliases", {
@@ -114,19 +153,23 @@ export function useDateContextMenu(
           },
           body: JSON.stringify({
             date,
-            alias,
+            alias: alias.trim(),
           }),
         });
 
         if (response.ok) {
-          alert("Date renamed successfully!");
+          alert(`已重命名为 "${alias.trim()}"`);
           onRefresh?.();
         } else {
           const error = await response.json();
-          alert(`Failed to rename date: ${error.error}`);
+          alert(`重命名失败: ${error.error}`);
         }
-      } catch {
-        alert("Failed to rename date");
+      } catch (error) {
+        alert(
+          `重命名失败: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
       }
     },
     [onRefresh]
@@ -135,8 +178,13 @@ export function useDateContextMenu(
   // Handle deleting all todos for a date
   const handleDeleteDate = useCallback(
     async (date: string) => {
+      // Get current display name for the date
+      const aliasResponse = await fetch("/api/date-aliases");
+      const aliases = aliasResponse.ok ? await aliasResponse.json() : {};
+      const displayName = aliases[date] || formatDateForDisplay(date);
+
       const confirmed = confirm(
-        `Are you sure you want to delete all todos for ${date}? This action cannot be undone.`
+        `确定要删除 "${displayName}" 的所有任务吗？此操作不可恢复！`
       );
       if (!confirmed) return;
 
@@ -146,14 +194,54 @@ export function useDateContextMenu(
         });
 
         if (response.ok) {
-          alert("Date and all todos deleted successfully!");
+          await response.json();
+          alert(`已删除 "${displayName}" 的所有任务`);
           onRefresh?.();
         } else {
           const error = await response.json();
-          alert(`Failed to delete date: ${error.error}`);
+          alert(`删除失败: ${error.error}`);
         }
-      } catch {
-        alert("Failed to delete date");
+      } catch (error) {
+        alert(
+          `删除失败: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      }
+    },
+    [onRefresh]
+  );
+
+  // Handle pin/unpin date
+  const handleTogglePin = useCallback(
+    async (date: string) => {
+      try {
+        // Get current pinned dates from localStorage
+        const pinnedDates = JSON.parse(
+          localStorage.getItem("pinnedDates") || "[]"
+        );
+        const isPinned = pinnedDates.includes(date);
+
+        let updatedPinnedDates;
+        if (isPinned) {
+          // Unpin
+          updatedPinnedDates = pinnedDates.filter((d: string) => d !== date);
+          alert(`已取消置顶`);
+        } else {
+          // Pin
+          updatedPinnedDates = [...pinnedDates, date];
+          alert(`已置顶`);
+        }
+
+        // Save to localStorage
+        localStorage.setItem("pinnedDates", JSON.stringify(updatedPinnedDates));
+        onRefresh?.();
+      } catch (error) {
+        alert(
+          `操作失败: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
       }
     },
     [onRefresh]
@@ -167,24 +255,37 @@ export function useDateContextMenu(
     ): ContextMenuOption[] => {
       const hasData = todoCounts[date]?.total > 0;
 
+      // Check if date is pinned
+      const pinnedDates = JSON.parse(
+        localStorage.getItem("pinnedDates") || "[]"
+      );
+      const isPinned = pinnedDates.includes(date);
+
       return [
         {
+          id: "pin",
+          label: isPinned ? "取消置顶" : "置顶",
+          icon: isPinned ? "📌" : "📍",
+          onClick: () => handleTogglePin(date),
+          disabled: !hasData,
+        },
+        {
           id: "copy",
-          label: "Copy date list",
+          label: "复制列表",
           icon: "📋",
           onClick: () => handleCopyDateList(date),
           disabled: !hasData,
         },
         {
           id: "rename",
-          label: "Rename date",
+          label: "重命名",
           icon: "✏️",
           onClick: () => handleRenameDate(date),
           disabled: !hasData,
         },
         {
           id: "delete",
-          label: "Delete date",
+          label: "删除列表",
           icon: "🗑️",
           onClick: () => handleDeleteDate(date),
           disabled: !hasData,
@@ -192,7 +293,7 @@ export function useDateContextMenu(
         },
       ];
     },
-    [handleCopyDateList, handleRenameDate, handleDeleteDate]
+    [handleCopyDateList, handleRenameDate, handleDeleteDate, handleTogglePin]
   );
 
   return {

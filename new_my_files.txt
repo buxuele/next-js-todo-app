@@ -1,0 +1,3637 @@
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\app.py
+内容:
+from flask import Flask, render_template
+from models import db, DateAlias
+from routes import todo_bp, ensure_today_todo_file
+from config import Config
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+# 修改数据库URI为新数据库
+import os
+instance_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+os.makedirs(instance_dir, exist_ok=True)  # 确保instance目录存在
+db_path = os.path.join(instance_dir, 'todos_new.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+
+db.init_app(app)
+
+# 注册 API 蓝图
+app.register_blueprint(todo_bp)
+
+# 主页路由只负责提供 HTML 页面
+# JavaScript 会通过 API /api/todos 获取数据
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+     
+    # 自动创建测试数据（最近一周的7个表）
+    from create_test_data import create_test_data
+
+    # 创建数据库表
+    with app.app_context():
+        db.create_all()
+        print("数据库表已创建")
+    
+    # 确保今天的todo文件存在
+    ensure_today_todo_file()
+   
+    # create_test_data()
+
+    # 临时调试，端口是 5990
+    # 开机运行，端口是 5995
+    app.run(debug=True, port=5990)
+
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\app.pyw
+内容:
+from flask import Flask, render_template
+from models import db, DateAlias
+from routes import todo_bp, ensure_today_todo_file
+from config import Config
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+# 修改数据库URI为新数据库
+import os
+instance_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+os.makedirs(instance_dir, exist_ok=True)  # 确保instance目录存在
+db_path = os.path.join(instance_dir, 'todos_new.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+
+db.init_app(app)
+
+# 注册 API 蓝图
+app.register_blueprint(todo_bp)
+
+# 主页路由只负责提供 HTML 页面
+# JavaScript 会通过 API /api/todos 获取数据
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+     
+    # 自动创建测试数据（最近一周的7个表）
+    from create_test_data import create_test_data
+
+    # 创建数据库表
+    with app.app_context():
+        db.create_all()
+        print("数据库表已创建")
+    
+    # 确保今天的todo文件存在
+    ensure_today_todo_file()
+   
+    # create_test_data()
+
+    # 临时调试，端口是 5990
+    # 开机运行，端口是 5995
+    app.run(debug=True, port=5995)
+
+
+
+    
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\config.py
+内容:
+import os
+from datetime import timedelta
+
+# 获取项目根目录
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+class Config:
+    """基础配置"""
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # 应用配置
+    APP_NAME = "Flask Todo App"
+    APP_VERSION = "1.0.0"
+    
+    # 数据库配置
+    DB_POOL_SIZE = 10
+    DB_TIMEOUT = 30
+    
+    # 安全配置
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_TIME_LIMIT = timedelta(hours=1)
+    
+    # 日志配置
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    LOG_FILE = os.environ.get('LOG_FILE', 'logs/app.log')
+
+class DevelopmentConfig(Config):
+    """开发环境配置"""
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'instance', 'todos_dev.db')
+    
+    # 开发环境特定配置
+    TESTING = False
+    WTF_CSRF_ENABLED = False  # 开发时禁用CSRF
+
+class ProductionConfig(Config):
+    """生产环境配置"""
+    DEBUG = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(basedir, 'instance', 'todos.db')
+    
+    # 生产环境特定配置
+    TESTING = False
+    WTF_CSRF_ENABLED = True
+
+class TestingConfig(Config):
+    """测试环境配置"""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
+
+# 配置映射
+config = {
+    'development': DevelopmentConfig,
+    'production': ProductionConfig,
+    'testing': TestingConfig,
+    'default': DevelopmentConfig
+}
+
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\create_test_data.py
+内容:
+#!/usr/bin/env python3
+"""
+创建测试数据 - 自动生成最近一周的7个表和示例任务
+"""
+
+
+from datetime import datetime, timedelta
+from models import DailyTodoManager
+import random
+
+def create_test_data():
+    """创建最近一周的测试数据"""
+    manager = DailyTodoManager()
+    
+    # 示例任务内容
+    sample_tasks = [
+        "完成项目文档",
+        "开会讨论需求",
+        "代码审查",
+        "修复bug #123",
+        "更新用户手册",
+        "测试新功能",
+        "优化数据库查询",
+        "回复客户邮件",
+        "准备演示文稿",
+        "学习新技术",
+        "整理代码仓库",
+        "写单元测试",
+        "部署到测试环境",
+        "分析性能问题",
+        "更新依赖包"
+    ]
+    
+    print("正在创建最近一周的测试数据...")
+    
+    # 创建最近7天的数据（包括今天）
+    for i in range(7):
+        # 计算日期（从6天前到今天）
+        date = datetime.now() - timedelta(days=6-i)
+        date_str = date.strftime('%Y-%m-%d')
+        
+        print(f"创建 {date_str} 的测试数据...")
+        
+        # 为每个日期随机创建2-5个任务
+        num_tasks = random.randint(2, 5)
+        selected_tasks = random.sample(sample_tasks, num_tasks)
+        
+        for task_content in selected_tasks:
+            task_id = manager.add_todo(date_str, task_content)
+            
+            # 随机设置一些任务为已完成（30%的概率）
+            if random.random() < 0.3:
+                manager.update_todo(date_str, task_id, completed=True)
+        
+        print(f"  ✓ 创建了 {num_tasks} 个任务")
+    
+    print("\n测试数据创建完成！")
+    print("现在你可以测试删除功能了。")
+    
+    # 显示创建的数据统计
+    counts = manager.get_todo_counts()
+    print("\n当前数据统计:")
+    for date_str, count in sorted(counts.items(), reverse=True):
+        date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+        display_date = date_obj.strftime('%m月%d日')
+        print(f"  {display_date}: {count} 个任务")
+
+if __name__ == "__main__":
+    create_test_data()
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\init_db.py
+内容:
+from app import app, db
+from models import DateAlias, DailyTodoManager
+from datetime import datetime, timedelta
+import logging
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def init_database():
+    """初始化数据库"""
+    try:
+        with app.app_context():
+            # 创建基础表（DateAlias表）
+            db.create_all()
+            
+            # 初始化todo管理器
+            todo_manager = DailyTodoManager()
+            
+            # 添加示例数据
+            add_sample_data(todo_manager)
+            
+            print('数据库初始化完成，已添加示例数据')
+            
+    except Exception as e:
+        logger.error(f"数据库初始化失败: {str(e)}")
+        raise
+
+def add_sample_data(todo_manager):
+    """添加示例数据"""
+    try:
+        today = datetime.now().strftime('%Y-%m-%d')
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        # 今天的任务
+        today_todos = [
+            "完成项目文档",
+            "开会讨论需求", 
+            "代码审查",
+            "更新数据库设计",
+            "测试新功能"
+        ]
+        
+        # 为今天创建表并添加任务
+        for i, content in enumerate(today_todos):
+            todo_id = todo_manager.add_todo(today, content)
+            # 第二个任务标记为已完成
+            if i == 1:
+                todo_manager.update_todo(today, todo_id, completed=True)
+        
+        # 昨天的任务（已完成）
+        yesterday_todos = [
+            "准备会议材料",
+            "回复邮件",
+            "整理代码"
+        ]
+        
+        # 为昨天创建表并添加任务
+        for content in yesterday_todos:
+            todo_id = todo_manager.add_todo(yesterday, content)
+            # 所有昨天的任务都标记为已完成
+            todo_manager.update_todo(yesterday, todo_id, completed=True)
+        
+        # 添加日期别名示例
+        with app.app_context():
+            date_alias = DateAlias(
+                date=yesterday,
+                alias="昨日工作"
+            )
+            db.session.add(date_alias)
+            db.session.commit()
+        
+        logger.info(f"成功添加 {len(today_todos)} 个今日任务和 {len(yesterday_todos)} 个昨日任务")
+        
+    except Exception as e:
+        logger.error(f"添加示例数据失败: {str(e)}")
+        raise
+
+if __name__ == '__main__':
+    init_database() 
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\models.py
+内容:
+"""
+新的数据库模型 - 每天一个表的设计
+"""
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+import sqlite3
+import os
+import uuid
+
+db = SQLAlchemy()
+
+class TableRegistry(db.Model):
+    """表注册表 - 记录所有todo表的元信息"""
+    __tablename__ = 'table_registry'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    table_id = db.Column(db.String(36), nullable=False, unique=True)  # UUID
+    display_name = db.Column(db.String(100), nullable=False)  # 显示名称
+    table_type = db.Column(db.String(20), default='daily')  # 表类型: daily, copy
+    source_date = db.Column(db.String(10), nullable=True)  # 原始日期（如果是日期表）
+    source_table_id = db.Column(db.String(36), nullable=True)  # 复制来源表ID
+    created_at = db.Column(db.DateTime, default=datetime.now)
+    is_active = db.Column(db.Boolean, default=True)  # 是否活跃
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'table_id': self.table_id,
+            'display_name': self.display_name,
+            'table_type': self.table_type,
+            'source_date': self.source_date,
+            'source_table_id': self.source_table_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'is_active': self.is_active
+        }
+
+class DateAlias(db.Model):
+    """日期别名表 - 兼容旧系统"""
+    __tablename__ = 'date_aliases'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.String(10), nullable=False, unique=True)  # 格式: YYYY-MM-DD
+    alias = db.Column(db.String(50), nullable=False)  # 自定义别名
+    created_at = db.Column(db.DateTime, default=datetime.now)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'date': self.date,
+            'alias': self.alias,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+class DailyTodoManager:
+    """每日Todo管理器 - 处理动态表操作，支持UUID表名"""
+    
+    def __init__(self, db_path='instance/todos_new.db'):
+        self.db_path = db_path
+        self.ensure_db_exists()
+    
+    def ensure_db_exists(self):
+        """确保数据库文件存在"""
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+    
+    def get_table_name_by_id(self, table_id):
+        """根据表ID生成实际的表名"""
+        return f"todo_{table_id.replace('-', '_')}"
+    
+    def get_table_name(self, date_str):
+        """兼容旧系统：根据日期或唯一标识符生成表名"""
+        # 处理新的复制标识符格式：copy-YYYYMMDD-timestamp
+        # 以及传统日期格式：YYYY-MM-DD
+        return f"todo_{date_str.replace('-', '_')}"
+    
+    def create_table_for_date(self, date_str):
+        """为指定日期创建表（简化版本，兼容旧系统和新的复制标识符）"""
+        table_name = self.get_table_name(date_str)
+        self._create_physical_table(table_name)
+        return table_name
+    
+    def create_copy_table(self, source_table_id, display_name):
+        """创建复制表"""
+        from flask import current_app
+        with current_app.app_context():
+            # 生成新的UUID
+            new_table_id = str(uuid.uuid4())
+            
+            # 创建注册记录
+            registry_entry = TableRegistry(
+                table_id=new_table_id,
+                display_name=display_name,
+                table_type='copy',
+                source_table_id=source_table_id
+            )
+            
+            db.session.add(registry_entry)
+            db.session.commit()
+            
+            # 创建实际的数据库表
+            new_table_name = self.get_table_name_by_id(new_table_id)
+            self._create_physical_table(new_table_name)
+            
+            return new_table_id, new_table_name
+    
+    def _create_physical_table(self, table_name):
+        """创建物理数据库表"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        create_sql = f"""
+        CREATE TABLE IF NOT EXISTS {table_name} (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            content TEXT NOT NULL,
+            completed BOOLEAN DEFAULT 0,
+            order_num INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            completed_at DATETIME NULL
+        )
+        """
+        
+        cursor.execute(create_sql)
+        conn.commit()
+        conn.close()
+    
+    def format_date_for_display(self, date_str):
+        """格式化日期用于显示"""
+        try:
+            date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+            return date_obj.strftime('%m月%d日')
+        except:
+            return date_str
+    
+    def table_exists_by_id(self, table_id):
+        """检查指定表ID的表是否存在"""
+        table_name = self.get_table_name_by_id(table_id)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name=?
+        """, (table_name,))
+        
+        exists = cursor.fetchone() is not None
+        conn.close()
+        
+        return exists
+    
+    def table_exists(self, date_str):
+        """检查指定日期的表是否存在（兼容旧系统）"""
+        table_name = self.get_table_name(date_str)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name=?
+        """, (table_name,))
+        
+        exists = cursor.fetchone() is not None
+        conn.close()
+        
+        return exists
+    
+    def get_todos_by_table_id(self, table_id):
+        """根据表ID获取todos"""
+        if not self.table_exists_by_id(table_id):
+            return []
+        
+        table_name = self.get_table_name_by_id(table_id)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute(f"""
+        SELECT id, content, completed, order_num, created_at, completed_at
+        FROM {table_name}
+        ORDER BY order_num, id
+        """)
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        todos = []
+        for row in rows:
+            todos.append({
+                'id': row[0],
+                'content': row[1],
+                'completed': bool(row[2]),
+                'order': row[3],
+                'table_id': table_id,
+                'created_at': row[4],
+                'completed_at': row[5]
+            })
+        
+        return todos
+    
+    def get_todos_for_date(self, date_str):
+        """获取指定日期的所有todos（兼容旧系统）"""
+        if not self.table_exists(date_str):
+            return []
+        
+        table_name = self.get_table_name(date_str)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute(f"""
+        SELECT id, content, completed, order_num, created_at, completed_at
+        FROM {table_name}
+        ORDER BY order_num, id
+        """)
+        
+        rows = cursor.fetchall()
+        conn.close()
+        
+        todos = []
+        for row in rows:
+            todos.append({
+                'id': row[0],
+                'content': row[1],
+                'completed': bool(row[2]),
+                'order': row[3],
+                'date': date_str,
+                'created_at': row[4],
+                'completed_at': row[5]
+            })
+        
+        return todos
+    
+    def add_todo_by_table_id(self, table_id, content, order_num=None):
+        """根据表ID添加新的todo"""
+        if not self.table_exists_by_id(table_id):
+            return None
+        
+        table_name = self.get_table_name_by_id(table_id)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # 如果没有指定order，获取最大值+1
+        if order_num is None:
+            cursor.execute(f"SELECT MAX(order_num) FROM {table_name}")
+            max_order = cursor.fetchone()[0] or 0
+            order_num = max_order + 1
+        
+        cursor.execute(f"""
+        INSERT INTO {table_name} (content, completed, order_num, created_at)
+        VALUES (?, ?, ?, ?)
+        """, (content, 0, order_num, datetime.now().isoformat()))
+        
+        todo_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return todo_id
+
+    def add_todo(self, date_str, content, order_num=None):
+        """添加新的todo（兼容旧系统和新的复制标识符）"""
+        # 对于复制标识符，直接创建表，不需要注册表逻辑
+        if date_str.startswith('copy-'):
+            table_name = self.get_table_name(date_str)
+            self._create_physical_table(table_name)
+        else:
+            # 确保表存在（传统日期格式）
+            table_name = self.create_table_for_date(date_str)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # 如果没有指定order，获取最大值+1
+        if order_num is None:
+            cursor.execute(f"SELECT MAX(order_num) FROM {table_name}")
+            max_order = cursor.fetchone()[0] or 0
+            order_num = max_order + 1
+        
+        cursor.execute(f"""
+        INSERT INTO {table_name} (content, completed, order_num, created_at)
+        VALUES (?, ?, ?, ?)
+        """, (content, 0, order_num, datetime.now().isoformat()))
+        
+        todo_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return todo_id
+    
+    def update_todo(self, date_str, todo_id, **kwargs):
+        """更新todo（支持日期和复制标识符）"""
+        if not self.table_exists(date_str):
+            return False
+        
+        table_name = self.get_table_name(date_str)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # 构建更新语句
+        update_fields = []
+        values = []
+        
+        if 'content' in kwargs:
+            update_fields.append('content = ?')
+            values.append(kwargs['content'])
+        
+        if 'completed' in kwargs:
+            update_fields.append('completed = ?')
+            values.append(kwargs['completed'])
+            
+            # 如果设置完成状态，同时更新完成时间
+            if kwargs['completed']:
+                update_fields.append('completed_at = ?')
+                values.append(datetime.now().isoformat())
+            else:
+                update_fields.append('completed_at = ?')
+                values.append(None)
+        
+        if 'order_num' in kwargs:
+            update_fields.append('order_num = ?')
+            values.append(kwargs['order_num'])
+        
+        if not update_fields:
+            conn.close()
+            return False
+        
+        values.append(todo_id)
+        
+        cursor.execute(f"""
+        UPDATE {table_name}
+        SET {', '.join(update_fields)}
+        WHERE id = ?
+        """, values)
+        
+        success = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        
+        return success
+    
+    def delete_todo(self, date_str, todo_id):
+        """删除todo"""
+        if not self.table_exists(date_str):
+            return False
+        
+        table_name = self.get_table_name(date_str)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute(f"DELETE FROM {table_name} WHERE id = ?", (todo_id,))
+        
+        success = cursor.rowcount > 0
+        conn.commit()
+        conn.close()
+        
+        return success
+    
+    def delete_all_todos_for_date(self, date_str):
+        """删除指定日期的所有todos并删除表"""
+        if not self.table_exists(date_str):
+            return 0
+        
+        table_name = self.get_table_name(date_str)
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # 先获取任务数量
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+        count = cursor.fetchone()[0]
+        
+        # 删除整个表，而不是只删除数据
+        cursor.execute(f"DROP TABLE IF EXISTS {table_name}")
+        conn.commit()
+        conn.close()
+        
+        return count
+    
+    def get_available_dates(self):
+        """获取所有有数据的日期和标识符"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name LIKE 'todo_%'
+        ORDER BY name DESC
+        """)
+        
+        tables = cursor.fetchall()
+        conn.close()
+        
+        dates = []
+        for table in tables:
+            table_name = table[0]
+            # 从表名恢复原始标识符
+            identifier = table_name.replace('todo_', '').replace('_', '-')
+            dates.append(identifier)
+        
+        return dates
+    
+    def get_todo_counts(self):
+        """获取每个日期的todo数量"""
+        dates = self.get_available_dates()
+        counts = {}
+        
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        for date_str in dates:
+            table_name = self.get_table_name(date_str)
+            cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+            counts[date_str] = cursor.fetchone()[0]
+        
+        conn.close()
+        return counts
+
+# 全局实例
+todo_manager = DailyTodoManager()
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\requirements.txt
+内容:
+blinker==1.9.0
+click==8.2.1
+colorama==0.4.6
+dominate==2.9.1
+Flask==3.1.1
+Flask-Bootstrap==3.3.7.1
+Flask-SQLAlchemy==3.1.1
+greenlet==3.2.3
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.2
+SQLAlchemy==2.0.41
+typing_extensions==4.14.1
+visitor==0.1.3
+Werkzeug==3.1.3
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\routes.py
+内容:
+"""
+新的路由文件 - 支持每日一表架构
+"""
+from flask import Blueprint, request, jsonify, send_file
+from models import DailyTodoManager, DateAlias, db
+from datetime import datetime
+import os
+
+# 使用 'api' 作为蓝图名称，并添加 URL 前缀
+todo_bp = Blueprint('api', __name__, url_prefix='/api')
+
+# 全局todo管理器实例
+todo_manager = DailyTodoManager()
+
+def _is_valid_date_format(date_str):
+    """验证日期格式是否为YYYY-MM-DD"""
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+def ensure_today_todo_file():
+    """确保今天的todo文件和数据库表存在"""
+    today = datetime.now().strftime('%Y-%m-%d')
+    date_obj = datetime.strptime(today, '%Y-%m-%d')
+    formatted_date = date_obj.strftime('%m.%d')
+    
+    # 1. 确保今天的数据库表存在
+    table_name = todo_manager.create_table_for_date(today)
+    print(f"已确保今日数据库表存在: {table_name}")
+    
+    # 2. 创建docs文件夹
+    docs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'docs')
+    if not os.path.exists(docs_dir):
+        os.makedirs(docs_dir)
+    
+    filename = f"{formatted_date}-todo.md"
+    filepath = os.path.join(docs_dir, filename)
+    
+    # 3. 如果文件不存在，创建一个空的todo文件
+    if not os.path.exists(filepath):
+        content = f"# {formatted_date} Todo\n\n今日无任务\n\n---\n创建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print(f"已创建今日Todo文件: {filename}")
+    else:
+        print(f"今日Todo文件已存在: {filename}")
+
+@todo_bp.route('/todos', methods=['GET'])
+def get_todos():
+    """获取指定日期的todos"""
+    date = request.args.get('date')
+    if not date:
+        # 如果没有指定日期，返回今天的todos
+        date = datetime.now().strftime('%Y-%m-%d')
+    
+    todos = todo_manager.get_todos_for_date(date)
+    return jsonify(todos)
+
+@todo_bp.route('/todos', methods=['POST'])
+def add_todo():
+    """添加新的todo"""
+    data = request.json
+    content = data.get('content')
+    date = data.get('date') or datetime.now().strftime('%Y-%m-%d')
+    
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+    
+    todo_id = todo_manager.add_todo(date, content)
+    
+    # 返回新创建的todo
+    todos = todo_manager.get_todos_for_date(date)
+    new_todo = next((t for t in todos if t['id'] == todo_id), None)
+    
+    if new_todo:
+        return jsonify(new_todo), 201
+    else:
+        return jsonify({'error': 'Failed to create todo'}), 500
+
+@todo_bp.route('/todos/counts', methods=['GET'])
+def get_todo_counts():
+    """获取每个日期的todo数量"""
+    counts = todo_manager.get_todo_counts()
+    return jsonify(counts)
+
+@todo_bp.route('/todos/<int:todo_id>', methods=['GET'])
+def get_todo(todo_id):
+    """获取单个todo - 需要日期参数"""
+    date = request.args.get('date')
+    if not date:
+        return jsonify({'error': 'Date parameter is required'}), 400
+    
+    todos = todo_manager.get_todos_for_date(date)
+    todo = next((t for t in todos if t['id'] == todo_id), None)
+    
+    if todo:
+        return jsonify(todo)
+    else:
+        return jsonify({'error': 'Todo not found'}), 404
+
+@todo_bp.route('/todos/<int:todo_id>', methods=['PUT'])
+def update_todo(todo_id):
+    """更新todo"""
+    data = request.json
+    date = data.get('date')
+    
+    if not date:
+        return jsonify({'error': 'Date parameter is required'}), 400
+    
+    update_data = {}
+    if 'content' in data:
+        update_data['content'] = data['content']
+    if 'completed' in data:
+        update_data['completed'] = data['completed']
+    if 'order' in data:
+        update_data['order_num'] = data['order']
+    
+    success = todo_manager.update_todo(date, todo_id, **update_data)
+    
+    if success:
+        # 返回更新后的todo
+        todos = todo_manager.get_todos_for_date(date)
+        updated_todo = next((t for t in todos if t['id'] == todo_id), None)
+        return jsonify(updated_todo)
+    else:
+        return jsonify({'error': 'Todo not found or update failed'}), 404
+
+@todo_bp.route('/todos/<int:todo_id>', methods=['DELETE'])
+def delete_todo(todo_id):
+    """删除单个todo"""
+    date = request.args.get('date')
+    if not date:
+        return jsonify({'error': 'Date parameter is required'}), 400
+    
+    success = todo_manager.delete_todo(date, todo_id)
+    
+    if success:
+        return '', 204
+    else:
+        return jsonify({'error': 'Todo not found'}), 404
+
+@todo_bp.route('/todos/<int:todo_id>/copy', methods=['POST'])
+def copy_todo(todo_id):
+    """复制todo"""
+    date = request.args.get('date')
+    if not date:
+        return jsonify({'error': 'Date parameter is required'}), 400
+    
+    # 获取原todo
+    todos = todo_manager.get_todos_for_date(date)
+    original_todo = next((t for t in todos if t['id'] == todo_id), None)
+    
+    if not original_todo:
+        return jsonify({'error': 'Todo not found'}), 404
+    
+    # 复制到同一日期
+    new_todo_id = todo_manager.add_todo(date, original_todo['content'])
+    
+    # 返回新创建的todo
+    todos = todo_manager.get_todos_for_date(date)
+    new_todo = next((t for t in todos if t['id'] == new_todo_id), None)
+    
+    return jsonify(new_todo), 201
+
+@todo_bp.route('/todos/date/<date>', methods=['DELETE'])
+def delete_todos_by_date(date):
+    """删除指定日期的所有todos"""
+    count = todo_manager.delete_all_todos_for_date(date)
+    
+    # 同时删除该日期的别名
+    try:
+        alias = DateAlias.query.filter_by(date=date).first()
+        if alias:
+            db.session.delete(alias)
+            db.session.commit()
+    except Exception as e:
+        # 别名删除失败不影响主要功能
+        print(f"删除日期别名失败: {e}")
+    
+    return jsonify({'message': f'已删除 {count} 个任务', 'count': count})
+
+@todo_bp.route('/todos/copy-date', methods=['POST'])
+def copy_date_todos():
+    """复制整个日期的todos到新日期"""
+    data = request.json
+    source_date = data.get('source_date')
+    target_date = data.get('target_date')
+    
+    if not source_date or not target_date:
+        return jsonify({'error': 'Source date and target date are required'}), 400
+    
+    # 获取源日期的所有todos
+    source_todos = todo_manager.get_todos_for_date(source_date)
+    
+    # 即使没有任务也要创建目标日期的表
+    copied_count = 0
+    if source_todos:
+        # 复制到目标日期
+        for todo in source_todos:
+            todo_manager.add_todo(target_date, todo['content'])
+            copied_count += 1
+    else:
+        # 即使源日期没有任务，也要确保目标日期的表存在
+        # 通过创建表来实现"复制空列表"
+        todo_manager.create_table_for_date(target_date)
+    
+    return jsonify({
+        'message': f'已复制 {copied_count} 个任务',
+        'count': copied_count
+    })
+
+@todo_bp.route('/date-aliases', methods=['GET'])
+def get_date_aliases():
+    """获取所有日期别名"""
+    try:
+        aliases = DateAlias.query.all()
+        return jsonify({alias.date: alias.alias for alias in aliases})
+    except Exception as e:
+        print(f"获取日期别名失败: {e}")
+        return jsonify({})
+
+@todo_bp.route('/date-aliases', methods=['POST'])
+def set_date_alias():
+    """设置或更新日期别名"""
+    data = request.json
+    date = data.get('date')
+    alias = data.get('alias')
+    
+    if not date or not alias:
+        return jsonify({'error': 'Date and alias are required'}), 400
+    
+    # 验证日期格式 - 支持标准日期格式和复制表的唯一标识符格式
+    if not (date.startswith('copy-') or _is_valid_date_format(date)):
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD or copy-* format'}), 400
+    
+    try:
+        # 查找现有别名或创建新的
+        existing_alias = DateAlias.query.filter_by(date=date).first()
+        if existing_alias:
+            existing_alias.alias = alias
+        else:
+            new_alias = DateAlias(date=date, alias=alias)
+            db.session.add(new_alias)
+        
+        db.session.commit()
+        return jsonify({'message': 'Date alias updated successfully'})
+    except Exception as e:
+        print(f"设置日期别名失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@todo_bp.route('/date-aliases/<date>', methods=['DELETE'])
+def delete_date_alias(date):
+    """删除日期别名"""
+    try:
+        alias = DateAlias.query.filter_by(date=date).first()
+        if alias:
+            db.session.delete(alias)
+            db.session.commit()
+            return jsonify({'message': 'Date alias deleted successfully'})
+        else:
+            return jsonify({'error': 'Date alias not found'}), 404
+    except Exception as e:
+        print(f"删除日期别名失败: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@todo_bp.route('/todos/export/<date>', methods=['GET'])
+def export_todo(date):
+    """导出指定日期的todos为markdown文件"""
+    todos = todo_manager.get_todos_for_date(date)
+    
+    # 创建docs文件夹
+    docs_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'docs')
+    if not os.path.exists(docs_dir):
+        os.makedirs(docs_dir)
+    
+    # 生成markdown内容
+    date_obj = datetime.strptime(date, '%Y-%m-%d')
+    formatted_date = date_obj.strftime('%m.%d')
+    
+    content = f"# {formatted_date} Todo\n\n"
+    
+    if not todos:
+        content += "今日无任务\n"
+    else:
+        completed_todos = [t for t in todos if t['completed']]
+        pending_todos = [t for t in todos if not t['completed']]
+        
+        if pending_todos:
+            content += "## 待完成\n\n"
+            for todo in pending_todos:
+                content += f"- [ ] {todo['content']}\n"
+            content += "\n"
+        
+        if completed_todos:
+            content += "## 已完成\n\n"
+            for todo in completed_todos:
+                content += f"- [x] {todo['content']}\n"
+            content += "\n"
+        
+        content += f"---\n总计: {len(todos)} 项任务，已完成: {len(completed_todos)} 项\n"
+    
+    # 保存文件
+    filename = f"{formatted_date}-todo.md"
+    filepath = os.path.join(docs_dir, filename)
+    
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(content)
+    
+    return send_file(filepath, as_attachment=True, download_name=filename)
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\run_flask_todo.bat
+内容:
+@echo off
+
+:: 切换到项目文件夹
+cd /d "C:\Users\Administrator\Work\flask_todo_app"
+
+:: 激活虚拟环境
+call todo_venv\Scripts\activate.bat
+
+start /B pythonw app.pyw
+
+@REM # 临时调试，端口是 5990
+@REM # 开机运行，端口是 5995
+
+@REM 把这个 bat 文件, 复制一份，放到启动目录
+@REM C:\Users\Administrator\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup 
+
+
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\start_repo.py
+内容:
+import os
+import subprocess
+import json
+import requests
+from dotenv import load_dotenv  # pip install python-dotenv
+
+# 加载 .env 文件
+load_dotenv()
+
+# 从 .env 文件读取 GitHub Personal Access Token
+GITHUB_USER = "buxuele"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+gitignore_content = """# 默认 .gitignore 文件，由 start_repo.py 创建
+# 请编辑此文件以添加需要忽略的文件或目录
+node_modules/
+*.log
+*.pyc
+__pycache__/
+
+# 文件夹
+.idea/
+instance/
+flask_venv/
+static/uploads/
+
+# 一些关键文件！！
+*.json
+*.bak
+.env
+
+*.pyc
+*.pyw
+*.bat
+
+start_repo.py
+gg.bat
+
+
+"""
+
+
+def run_command(command):
+    """运行系统命令并返回输出"""
+    print(f"📢 执行命令: {command}")
+    result = subprocess.run(command, shell=True, text=True, encoding="utf-8", errors="ignore")
+    print(f"命令输出: {result.stdout}")
+    if result.stderr:
+        print(f"命令错误: {result.stderr}")
+    if result.returncode != 0:
+        print(f"😵 命令 '{command}' 失败，退出码: {result.returncode}")
+        exit(1)
+    return result.stdout
+
+
+def check_repository_exists(repo_name):
+    """检查 GitHub 仓库是否存在"""
+    print(f"📢 检查仓库 '{repo_name}' 是否存在...")
+    url = f"https://api.github.com/repos/{GITHUB_USER}/{repo_name}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    response = requests.get(url, headers=headers)
+    print(f"📢 API 响应状态码: {response.status_code}")
+
+    if response.status_code == 200:
+        print(f"🎉 仓库 '{repo_name}' 已存在，将直接使用！")
+        return True, response.json().get("html_url") + ".git"
+    elif response.status_code == 404:
+        print(f"📢 仓库 '{repo_name}' 不存在，将创建新仓库。")
+        return False, None
+    else:
+        print(f"😵 检查仓库失败，错误信息: {response.json().get('message', '未知错误')}")
+        exit(1)
+
+
+def create_repository(repo_name, description):
+    """通过 GitHub API 创建新仓库"""
+    print(f"📢 创建新仓库 '{repo_name}'...")
+    url = "https://api.github.com/user/repos"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
+    data = {
+        "name": repo_name,
+        "description": description or "",
+        "private": False
+    }
+    response = requests.post(url, headers=headers, json=data)
+    print(f"📢 API 创建响应状态码: {response.status_code}")
+
+    if response.status_code == 201:
+        print(f"🎉 新仓库 '{repo_name}' 创建成功！")
+        return response.json().get("html_url") + ".git"
+    else:
+        print(f"😵 创建仓库失败，错误信息: {response.json().get('message', '未知错误')}")
+        exit(1)
+
+
+def create_gitignore():
+    """创建默认 .gitignore 文件"""
+
+    if not os.path.exists(".gitignore"):
+        with open(".gitignore", "w", encoding="utf-8") as f:
+            f.write(gitignore_content)
+        print("📢 已创建 .gitignore 文件，请检查并编辑！")
+    else:
+        print("📢 .gitignore 文件已存在，请检查是否需要修改！")
+
+
+def main():
+    # 检查 Token 是否有效
+    if not GITHUB_TOKEN:
+        print("😵 错误：未在 .env 文件中找到 GITHUB_TOKEN！请确保 .env 文件存在并包含有效的 Token。")
+        exit(1)
+
+    # 获取当前文件夹名称作为默认仓库名
+    default_repo_name = os.path.basename(os.getcwd())
+    print(f"📢 默认仓库名称: {default_repo_name}")
+
+    # 检查仓库是否存在
+    repo_exists, remote_url = check_repository_exists(default_repo_name)
+
+    # 如果仓库不存在，询问用户是否创建
+    if not repo_exists:
+        use_default = input(f"是否使用默认仓库名称 '{default_repo_name}'？(y/n): ").strip().lower()
+        if use_default == "y":
+            repo_name = default_repo_name
+        else:
+            repo_name = input("请输入仓库名称: ").strip()
+            if not repo_name:
+                print("😵 错误：仓库名称不能为空！")
+                exit(1)
+        description = input("请输入仓库描述（可选，按回车跳过）: ").strip()
+        remote_url = create_repository(repo_name, description)
+    else:
+        repo_name = default_repo_name
+
+    print(f"📢 远程仓库地址: {remote_url}")
+
+    if "README.md" not in os.listdir():
+        # 创建 README.md
+        print("📢 创建 README.md 文件...")
+        with open("README.md", "w", encoding="utf-8") as f:
+            f.write(f"# {repo_name}\n")
+
+    # 初始化 Git 仓库
+    print("📢 初始化 Git 仓库...")
+    run_command("git init")
+    run_command("git branch -M main")
+
+    # 创建或检查 .gitignore
+    create_gitignore()
+
+    # 显示 git status 并暂停
+    print("\n📋 当前 Git 状态：")
+    run_command("git status")
+    input("请检查 git status 和 .gitignore 文件，编辑后按回车继续...")
+
+    # 添加所有更改
+    print("📢 添加所有更改...")
+    run_command("git add .")
+
+    # 提交更改
+    commit_msg = input("请输入提交信息（默认：ok）: ").strip() or "ok"
+    print(f"📢 使用提交信息: {commit_msg}")
+    run_command(f'git commit -m "{commit_msg}"')
+
+    # 检查是否已存在 origin
+    print("📢 检查远程仓库 'origin'...")
+    result = subprocess.run("git remote get-url origin", shell=True, text=True, capture_output=True, encoding="utf-8",
+                            errors="ignore")
+    if result.returncode == 0:
+        print("📢 远程仓库 'origin' 已存在，跳过添加。")
+    else:
+        print(f"📢 添加远程仓库: {remote_url}")
+        run_command(f"git remote add origin {remote_url}")
+
+    # 推送代码
+    print("📢 正在推送代码到远程仓库...")
+    run_command("git push -u origin main")
+
+    # 显示最终状态
+    print("\n📋 最终 Git 状态：")
+    run_command("git status")
+    print("🎉 搞定啦！仓库已创建并推送成功！")
+
+
+if __name__ == "__main__":
+    main()
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\test_copy_fix.py
+内容:
+#!/usr/bin/env python3
+"""
+测试复制表功能的修复
+"""
+import requests
+import json
+import time
+
+BASE_URL = "http://127.0.0.1:5990/api"
+
+def test_copy_and_rename():
+    """测试复制和重命名功能"""
+    print("=" * 60)
+    print("测试复制表功能修复")
+    print("=" * 60)
+    
+    # 1. 创建一个测试日期（7月29日）
+    test_date = "2025-07-29"
+    print(f"1. 测试日期: {test_date}")
+    
+    # 添加一个测试任务
+    response = requests.post(f"{BASE_URL}/todos", json={
+        "content": "测试任务",
+        "date": test_date
+    })
+    print(f"   添加测试任务: {response.status_code}")
+    
+    # 2. 复制这个日期的表
+    timestamp = int(time.time() * 1000)
+    copy_id = f"copy-20250729-{timestamp}"
+    
+    response = requests.post(f"{BASE_URL}/copy-date", json={
+        "source_date": test_date,
+        "target_date": copy_id
+    })
+    print(f"2. 复制表: {response.status_code}")
+    if response.status_code == 200:
+        print(f"   复制成功: {response.json()}")
+    else:
+        print(f"   复制失败: {response.text}")
+        return
+    
+    # 3. 为复制的表设置别名
+    alias_name = "7月29日-copy"
+    response = requests.post(f"{BASE_URL}/date-aliases", json={
+        "date": copy_id,
+        "alias": alias_name
+    })
+    print(f"3. 设置别名 '{alias_name}': {response.status_code}")
+    if response.status_code == 200:
+        print(f"   别名设置成功: {response.json()}")
+    else:
+        print(f"   别名设置失败: {response.text}")
+        return
+    
+    # 4. 重命名为"生活"
+    new_alias = "生活"
+    response = requests.post(f"{BASE_URL}/date-aliases", json={
+        "date": copy_id,
+        "alias": new_alias
+    })
+    print(f"4. 重命名为 '{new_alias}': {response.status_code}")
+    if response.status_code == 200:
+        print(f"   重命名成功: {response.json()}")
+    else:
+        print(f"   重命名失败: {response.text}")
+        return
+    
+    # 5. 再次复制"生活"表
+    timestamp2 = int(time.time() * 1000)
+    copy_id2 = f"copy-20250729-{timestamp2}"
+    
+    response = requests.post(f"{BASE_URL}/copy-date", json={
+        "source_date": copy_id,  # 使用第一次复制的ID作为源
+        "target_date": copy_id2
+    })
+    print(f"5. 再次复制 '生活' 表: {response.status_code}")
+    if response.status_code == 200:
+        print(f"   复制成功: {response.json()}")
+    else:
+        print(f"   复制失败: {response.text}")
+        return
+    
+    # 6. 为第二次复制设置别名
+    alias_name2 = "生活-copy"
+    response = requests.post(f"{BASE_URL}/date-aliases", json={
+        "date": copy_id2,
+        "alias": alias_name2
+    })
+    print(f"6. 设置别名 '{alias_name2}': {response.status_code}")
+    if response.status_code == 200:
+        print(f"   别名设置成功: {response.json()}")
+    else:
+        print(f"   别名设置失败: {response.text}")
+        return
+    
+    print("\n" + "=" * 60)
+    print("测试完成！所有步骤都成功执行。")
+    print("=" * 60)
+    
+    # 7. 验证所有表都存在
+    print("\n验证创建的表:")
+    for date_id, name in [(test_date, "原始表"), (copy_id, "生活"), (copy_id2, "生活-copy")]:
+        response = requests.get(f"{BASE_URL}/todos?date={date_id}")
+        if response.status_code == 200:
+            todos = response.json()
+            print(f"   {name} ({date_id}): {len(todos)} 个任务")
+        else:
+            print(f"   {name} ({date_id}): 获取失败")
+
+if __name__ == "__main__":
+    test_copy_and_rename()
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\test_copy_issue.py
+内容:
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+测试复制功能的问题和解决方案
+"""
+
+import os
+import sys
+import sqlite3
+from datetime import datetime, timedelta
+import json
+
+# 添加当前目录到路径
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from models import DailyTodoManager, DateAlias, db
+from flask import Flask
+from config import Config
+
+def setup_test_app(test_name="test"):
+    """设置测试应用"""
+    app = Flask(__name__)
+    app.config.from_object(Config)
+    
+    # 使用测试数据库
+    instance_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+    os.makedirs(instance_dir, exist_ok=True)
+    test_db_path = os.path.join(instance_dir, f'{test_name}_todos.db')
+    
+    # 如果测试数据库存在，删除它
+    if os.path.exists(test_db_path):
+        try:
+            os.remove(test_db_path)
+        except PermissionError:
+            # 如果无法删除，使用时间戳创建新文件名
+            import time
+            timestamp = int(time.time())
+            test_db_path = os.path.join(instance_dir, f'{test_name}_{timestamp}_todos.db')
+    
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{test_db_path}'
+    db.init_app(app)
+    
+    return app, test_db_path
+
+def test_current_copy_issue():
+    """测试当前复制功能的问题"""
+    print("=" * 60)
+    print("测试当前复制功能的问题")
+    print("=" * 60)
+    
+    app, test_db_path = setup_test_app("current_issue")
+    
+    with app.app_context():
+        # 创建数据库表
+        db.create_all()
+        
+        # 创建测试管理器
+        manager = DailyTodoManager(test_db_path)
+        
+        # 模拟今天是7月28日
+        today = "2025-07-28"
+        source_date = "2025-07-24"  # 要复制的日期
+        
+        print(f"1. 创建源日期 {source_date} 的任务")
+        manager.add_todo(source_date, "任务1 - 原始")
+        manager.add_todo(source_date, "任务2 - 原始")
+        
+        # 显示源日期的任务
+        source_todos = manager.get_todos_for_date(source_date)
+        print(f"   源日期 {source_date} 有 {len(source_todos)} 个任务:")
+        for todo in source_todos:
+            print(f"   - {todo['content']}")
+        
+        print(f"\n2. 模拟旧的复制逻辑 - 寻找明天的空闲日期")
+        
+        # 获取现有日期
+        existing_dates = manager.get_available_dates()
+        print(f"   现有日期: {existing_dates}")
+        
+        # 从明天开始找空闲日期（旧逻辑）
+        tomorrow = datetime.strptime(today, '%Y-%m-%d') + timedelta(days=1)
+        target_date = tomorrow.strftime('%Y-%m-%d')  # 2025-07-29
+        
+        print(f"   找到的目标日期: {target_date}")
+        
+        # 复制任务到目标日期
+        print(f"\n3. 复制任务到 {target_date}")
+        for todo in source_todos:
+            manager.add_todo(target_date, todo['content'])
+        
+        # 设置别名
+        alias_entry = DateAlias(date=target_date, alias="7月24日-copy")
+        db.session.add(alias_entry)
+        db.session.commit()
+        
+        print(f"   已设置别名: {target_date} -> '7月24日-copy'")
+        
+        # 显示复制后的状态
+        target_todos = manager.get_todos_for_date(target_date)
+        print(f"   目标日期 {target_date} 有 {len(target_todos)} 个任务:")
+        for todo in target_todos:
+            print(f"   - {todo['content']}")
+        
+        print(f"\n4. 问题演示：当真正到了 {target_date} 时")
+        print(f"   系统会尝试为 {target_date} 创建今日任务表")
+        print(f"   但发现表已经存在（被复制功能占用）")
+        print(f"   这会导致逻辑冲突！")
+        
+        # 显示所有表
+        conn = sqlite3.connect(test_db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'todo_%'")
+        tables = cursor.fetchall()
+        conn.close()
+        
+        print(f"\n   当前数据库中的表:")
+        for table in tables:
+            table_name = table[0]
+            date_str = table_name.replace('todo_', '').replace('_', '-')
+            print(f"   - {table_name} (对应日期: {date_str})")
+
+def test_new_copy_solution():
+    """测试新的复制解决方案"""
+    print("\n" + "=" * 60)
+    print("测试新的复制解决方案")
+    print("=" * 60)
+    
+    app, test_db_path = setup_test_app("new_solution")
+    
+    with app.app_context():
+        # 创建数据库表
+        db.create_all()
+        
+        # 创建测试管理器
+        manager = DailyTodoManager(test_db_path)
+        
+        # 模拟今天是7月28日
+        today = "2025-07-28"
+        source_date = "2025-07-24"  # 要复制的日期
+        
+        print(f"1. 创建源日期 {source_date} 的任务")
+        manager.add_todo(source_date, "任务1 - 原始")
+        manager.add_todo(source_date, "任务2 - 原始")
+        
+        # 显示源日期的任务
+        source_todos = manager.get_todos_for_date(source_date)
+        print(f"   源日期 {source_date} 有 {len(source_todos)} 个任务:")
+        for todo in source_todos:
+            print(f"   - {todo['content']}")
+        
+        print(f"\n2. 使用新的复制逻辑 - 生成唯一标识符")
+        
+        # 生成唯一的复制标识符（新逻辑）
+        timestamp = int(datetime.now().timestamp() * 1000)  # 毫秒时间戳
+        today_obj = datetime.strptime(today, '%Y-%m-%d')
+        date_prefix = today_obj.strftime('%Y%m%d')
+        unique_id = f"copy-{date_prefix}-{timestamp}"
+        
+        print(f"   生成的唯一标识符: {unique_id}")
+        
+        # 复制任务到唯一标识符
+        print(f"\n3. 复制任务到唯一标识符 {unique_id}")
+        for todo in source_todos:
+            manager.add_todo(unique_id, todo['content'])
+        
+        # 设置别名
+        alias_entry = DateAlias(date=unique_id, alias="7月24日-copy")
+        db.session.add(alias_entry)
+        db.session.commit()
+        
+        print(f"   已设置别名: {unique_id} -> '7月24日-copy'")
+        
+        # 显示复制后的状态
+        target_todos = manager.get_todos_for_date(unique_id)
+        print(f"   目标标识符 {unique_id} 有 {len(target_todos)} 个任务:")
+        for todo in target_todos:
+            print(f"   - {todo['content']}")
+        
+        print(f"\n4. 解决方案验证：当真正到了 2025-07-29 时")
+        future_date = "2025-07-29"
+        print(f"   系统可以正常为 {future_date} 创建今日任务表")
+        manager.add_todo(future_date, "7月29日的正常任务")
+        
+        future_todos = manager.get_todos_for_date(future_date)
+        print(f"   {future_date} 有 {len(future_todos)} 个任务:")
+        for todo in future_todos:
+            print(f"   - {todo['content']}")
+        
+        # 显示所有表
+        conn = sqlite3.connect(test_db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'todo_%'")
+        tables = cursor.fetchall()
+        conn.close()
+        
+        print(f"\n   当前数据库中的表:")
+        for table in tables:
+            table_name = table[0]
+            identifier = table_name.replace('todo_', '').replace('_', '-')
+            if identifier.startswith('copy-'):
+                print(f"   - {table_name} (复制标识符: {identifier})")
+            else:
+                print(f"   - {table_name} (日期: {identifier})")
+        
+        print(f"\n   ✅ 没有冲突！真实日期和复制标识符完全分离")
+
+def test_alias_display():
+    """测试别名显示功能"""
+    print("\n" + "=" * 60)
+    print("测试别名显示功能")
+    print("=" * 60)
+    
+    app, test_db_path = setup_test_app("alias_display")
+    
+    with app.app_context():
+        # 创建数据库表
+        db.create_all()
+        
+        # 创建一些测试别名
+        aliases = [
+            ("2025-07-24", "工作日志"),
+            ("2025-07-25", "学习计划"),
+            ("copy-20250728-1234567890", "7月24日-copy"),
+            ("copy-20250728-1234567891", "学习计划-copy")
+        ]
+        
+        for date, alias in aliases:
+            alias_entry = DateAlias(date=date, alias=alias)
+            db.session.add(alias_entry)
+        
+        db.session.commit()
+        
+        print("创建的别名映射:")
+        all_aliases = DateAlias.query.all()
+        for alias in all_aliases:
+            print(f"   {alias.date} -> '{alias.alias}'")
+        
+        print(f"\n前端显示逻辑:")
+        print(f"   - 真实日期 2025-07-24 显示为: '工作日志'")
+        print(f"   - 真实日期 2025-07-25 显示为: '学习计划'")
+        print(f"   - 复制标识符 copy-20250728-1234567890 显示为: '7月24日-copy'")
+        print(f"   - 复制标识符 copy-20250728-1234567891 显示为: '学习计划-copy'")
+        print(f"   - 用户看到的是有意义的名称，而不是技术标识符")
+
+def main():
+    """主函数"""
+    print("Flask Todo App - 复制功能问题分析和解决方案测试")
+    print("时间:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    
+    try:
+        # 测试当前问题
+        test_current_copy_issue()
+        
+        # 测试解决方案
+        test_new_copy_solution()
+        
+        # 测试别名显示
+        test_alias_display()
+        
+        print("\n" + "=" * 60)
+        print("总结")
+        print("=" * 60)
+        print("问题:")
+        print("  - 旧的复制逻辑使用未来日期作为表名")
+        print("  - 当真正到达该日期时会产生冲突")
+        print("  - 表名与显示名不一致，造成混淆")
+        print()
+        print("解决方案:")
+        print("  - 使用唯一时间戳标识符 (copy-YYYYMMDD-timestamp)")
+        print("  - 完全避免与真实日期的冲突")
+        print("  - 通过别名系统提供有意义的显示名称")
+        print("  - 保持数据库表名的唯一性和一致性")
+        print()
+        print("✅ 测试完成！新方案可以解决表名冲突问题。")
+        
+    except Exception as e:
+        print(f"❌ 测试失败: {e}")
+        import traceback
+        traceback.print_exc()
+
+if __name__ == "__main__":
+    main()
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\todo.md
+内容:
+### todo
+
+
+
+此时的问题是。 
+
+假设今天是 7月28日，
+我如果复制一个表，比如复制 7月24日，
+表面上得到的是 7月24日-copy,
+那么实际上会用明天的日期来作为表名， 即，实际的表名是 7月29日。
+
+那么到了明天，按理应该新建一个 空白的 7月29日，
+但是系统一检查，已经存在了， 所以这里有个逻辑上的问题。
+
+请检查。
+
+这里能否改为，使用严格的，唯一的表名。
+即，实际显示的表名，与数据库中存储的表名，应该是一致的。
+即便是不一致，应该用一个特殊的映射表来记录。
+比如对每个表名，增加一个 hash 值，用来记录的它的起源。
+
+ 
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\说明.md
+内容:
+
+
+## 把 flask app, 部署到 vercel 
+- 是可行的。
+- 聊天：https://aistudio.google.com/prompts/1uTv5R00MTFMPLQlyjkP5N4pP2DBXtgBC
+- 但是我觉得，我想新建一个项目，vercel_flask_todo_app ? 
+
+
+### todo app 
+
+- 此项目虽然看起来简单，实际上，修改成自己喜欢的样子，也是费时间的。
+- 别人都搞AI 相关的项目，而我还是搞这种基础的东西。不要灰心。
+- 积累。就是不论项目大小，不论难易，只看是否有用。
+- 专业的厨师，无论是切菜还是杀鱼，总是选择最合适的刀。
+
+
+### 此 app 的起因
+- 我需要记录自己每天做了什么。打算做什么。以及一些想法。
+- 回顾检查。
+- 每日工作日志。
+
+
+- 此 app 最简单，反而是我最喜欢的 app. 
+- 这个简单的事情，总是让我想起来哪个大厨，做了一道很简单的食物。比如芝士三明治，或是嫩嫩的滑蛋卷。。
+
+
+
+目录: docs
+内容: 此目录为空
+
+目录: instance
+内容: [这是一个目录]
+
+目录: services
+内容: [这是一个目录]
+
+目录: static
+内容: [这是一个目录]
+
+目录: templates
+内容: [这是一个目录]
+
+目录: utils
+内容: [这是一个目录]
+
+目录: 效果图
+内容: [这是一个目录]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\instance\alias_display_todos.db
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\instance\current_issue_todos.db
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\instance\new_solution_todos.db
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\instance\test_todos.db
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\instance\todos_new.db
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\services\database_service.py
+内容:
+"""
+统一的数据库服务层
+"""
+import sqlite3
+import os
+from contextlib import contextmanager
+from typing import List, Dict, Any, Optional
+import logging
+
+logger = logging.getLogger(__name__)
+
+class DatabaseService:
+    """统一的数据库服务"""
+    
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self.ensure_db_exists()
+    
+    def ensure_db_exists(self):
+        """确保数据库文件存在"""
+        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+    
+    @contextmanager
+    def get_connection(self):
+        """获取数据库连接的上下文管理器"""
+        conn = None
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row  # 使结果可以通过列名访问
+            yield conn
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            logger.error(f"数据库操作失败: {e}")
+            raise
+        finally:
+            if conn:
+                conn.close()
+    
+    def execute_query(self, query: str, params: tuple = None) -> List[Dict[str, Any]]:
+        """执行查询并返回结果"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params or ())
+            return [dict(row) for row in cursor.fetchall()]
+    
+    def execute_update(self, query: str, params: tuple = None) -> int:
+        """执行更新操作并返回影响的行数"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params or ())
+            conn.commit()
+            return cursor.rowcount
+    
+    def execute_insert(self, query: str, params: tuple = None) -> int:
+        """执行插入操作并返回新记录的ID"""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(query, params or ())
+            conn.commit()
+            return cursor.lastrowid
+    
+    def table_exists(self, table_name: str) -> bool:
+        """检查表是否存在"""
+        query = """
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name=?
+        """
+        result = self.execute_query(query, (table_name,))
+        return len(result) > 0
+    
+    def create_table(self, table_name: str, schema: str):
+        """创建表"""
+        query = f"CREATE TABLE IF NOT EXISTS {table_name} ({schema})"
+        self.execute_update(query)
+    
+    def drop_table(self, table_name: str):
+        """删除表"""
+        query = f"DROP TABLE IF EXISTS {table_name}"
+        self.execute_update(query)
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\favicon.ico
+内容: [无法作为文本读取，可能是二进制文件]
+
+目录: static\css
+内容: [这是一个目录]
+
+目录: static\fonts
+内容: [这是一个目录]
+
+目录: static\js
+内容: [这是一个目录]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\css\style.css
+内容:
+@font-face {
+  font-family: "MaruSC";
+  src: url("/static/fonts/975MaruSC-Medium.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  background: #fff3e0;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+}
+
+.sidebar {
+  width: 250px;
+  background: #2d2d2d;
+  color: #ffffff;
+  padding: 20px 0;
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid #444;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.sidebar-header {
+  padding: 0 20px 20px 20px;
+  border-bottom: 1px solid #444;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #ffffff;
+}
+
+.sidebar.collapsed .sidebar-header h3 {
+  display: none;
+}
+
+.collapse-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.collapse-btn:hover {
+  background: #404040;
+}
+
+.date-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.date-item {
+  padding: 12px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid #444;
+  transition: background-color 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar.collapsed .date-item {
+  padding: 12px 10px;
+  justify-content: center;
+}
+
+.sidebar.collapsed .date-name {
+  display: none;
+}
+
+.sidebar.collapsed .todo-count {
+  margin: 0;
+}
+
+.date-item:hover {
+  background-color: #404040;
+}
+
+.date-item.active {
+  background-color: #0d6efd;
+}
+
+.date-item .date-name {
+  font-size: 1.14rem; /* 0.95rem * 1.2 = 1.14rem */
+}
+
+.date-item .todo-count {
+  display: none; /* 隐藏计数圆圈 */
+}
+
+/* 置顶相关样式 */
+.date-item.pinned {
+  background-color: #1a472a;
+  border-left: 3px solid #28a745;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.date-item.pinned:hover {
+  background-color: #2d5a3d;
+}
+
+.date-item.pinned.active {
+  background-color: #0d6efd;
+  border-left: 3px solid #28a745;
+}
+
+.pin-icon {
+  color: #dc3545; /* 红色图标 */
+  font-size: 0.9rem;
+  margin-left: auto; /* 推到右边 */
+  flex-shrink: 0;
+}
+
+/* 置顶项目的名称容器 */
+.date-item.pinned .date-name {
+  flex: 1;
+  text-align: left;
+}
+
+.main-content {
+  flex: 1;
+  padding: 48px;
+  overflow-y: auto;
+}
+
+.container {
+  background: #fff7ed;
+  border: 1px solid #000;
+  border-radius: 16px;
+  box-shadow: 0 0 16px #f5c16c33;
+  max-width: none;
+  margin: 0;
+  padding: 40px 36px 36px 36px;
+  height: fit-content;
+}
+
+.list-group {
+  border: none !important;
+}
+
+.list-group-item {
+  border: 1px solid #000 !important;
+  border-radius: 10px !important;
+  margin-bottom: 18px;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+  padding: 12px 12px 12px 16px;
+  display: flex;
+  align-items: flex-start;
+  min-height: 39px;
+  background-color: #fff3e0 !important;
+}
+
+.form-control,
+.btn {
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+}
+
+.input-group {
+  border: none !important;
+}
+
+.input-group {
+  margin-bottom: 24px !important;
+}
+
+.form-control {
+  padding: 12px 16px;
+  font-size: 1.1rem;
+  background-color: #fff3e0 !important;
+}
+
+.btn {
+  font-weight: bold;
+  padding: 4px 8px;
+  margin-left: 2px;
+  font-size: 0.95rem;
+  line-height: 22px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.form-control.d-inline {
+  height: 100%;
+  padding: 0 8px;
+  font-size: 1.15rem;
+  margin-right: 8px;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 1 1 0%;
+  min-width: 60px;
+  margin-left: 0;
+  border: 1px solid #000 !important;
+  border-radius: 8px !important;
+  background-color: #fff3e0 !important;
+}
+
+.form-control.d-inline:focus {
+  border-color: #2979ff !important;
+  box-shadow: 0 0 0 1px #90caf9;
+  outline: none;
+  border-width: 1px;
+}
+
+.todo-content {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+  font-size: 1.15rem;
+  flex: 1;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  line-height: 1.4;
+  margin-right: 12px;
+}
+
+.todo-completed {
+  text-decoration: line-through;
+  color: #888;
+}
+
+.todo-dates {
+  font-size: 1.15rem;
+  color: #b77b00;
+  min-width: 120px;
+  text-align: right;
+  flex-shrink: 0;
+  align-self: flex-start;
+  line-height: 1.4;
+}
+
+.todo-actions {
+  margin-left: 8px;
+  margin-right: 0px;
+  margin-top: -6px;
+  display: flex;
+  flex-direction: row;
+  gap: 2px;
+  align-items: flex-start;
+  flex-shrink: 0;
+  width: 170px;
+}
+
+.todo-actions .btn {
+  white-space: nowrap;
+  text-align: center;
+  padding: 6px 8px;
+  font-size: 1.15rem;
+  line-height: 1.4;
+  min-width: 54px;
+  flex-shrink: 0;
+  margin: 0;
+  font-weight: normal;
+}
+
+/* 右键菜单样式 */
+.context-menu {
+  position: fixed;
+  background: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 120px;
+  padding: 4px 0;
+  display: none;
+}
+
+.context-menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.context-menu-item.danger {
+  color: #dc3545;
+}
+
+.context-menu-item.danger:hover {
+  background-color: #f8d7da;
+}
+
+/* 通知提示样式 */
+.toast-container {
+  z-index: 1050;
+}
+
+.toast {
+  border: 1px solid #000;
+  border-radius: 8px;
+  font-family: "MaruSC", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+}
+
+.toast-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+  font-weight: bold;
+}
+
+.toast-body {
+  font-size: 0.95rem;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 16px 4px;
+  }
+  .list-group-item {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 8px;
+  }
+  .todo-actions {
+    margin-left: 0;
+    margin-top: 8px;
+  }
+}
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\fonts\975MaruSC-Medium.ttf
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\config.js
+内容:
+/**
+ * 应用配置和常量
+ */
+const CONFIG = {
+  API_BASE: "/api/todos",
+  DATE_FORMAT: "YYYY-MM-DD",
+  LOCALE: "zh-CN",
+};
+
+// 获取当前日期
+const today = new Date();
+let currentDate = today.toISOString().split("T")[0]; // 当前选中的日期 YYYY-MM-DD
+
+// 全局变量
+let allTodos = []; // 存储所有日期的todos
+let isSearchMode = false; // 是否处于搜索模式
+let rightClickedDate = null; // 存储右键点击的日期
+let pinnedDates = new Set(); // 存储置顶的日期
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\context-menu.js
+内容:
+/**
+ * 右键菜单相关功能
+ */
+
+// 为日期列表项添加右键菜单事件
+function addContextMenuToDateItem(li, dateStr) {
+  li.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+    rightClickedDate = dateStr;
+
+    // 更新置顶菜单项的文本
+    const pinMenuItem = document.getElementById("pin-menu-item");
+    if (pinnedDates.has(dateStr)) {
+      pinMenuItem.textContent = "取消置顶";
+    } else {
+      pinMenuItem.textContent = "置顶";
+    }
+
+    const contextMenu = document.getElementById("context-menu");
+    contextMenu.style.display = "block";
+    contextMenu.style.left = e.pageX + "px";
+    contextMenu.style.top = e.pageY + "px";
+  });
+}
+
+// 复制日期列表功能 - 创建新的独立日期副本，使用唯一标识符避免冲突
+function copyDateList() {
+  if (!rightClickedDate) return;
+
+  // 获取当前显示的名称（可能是别名）
+  const currentDisplayName = document.querySelector(
+    `[data-date="${rightClickedDate}"] .date-name`
+  ).textContent;
+
+  // 生成唯一的复制标识符：使用时间戳确保唯一性
+  const timestamp = Date.now();
+  const copyName = currentDisplayName + "-copy";
+
+  // 生成一个基于时间戳的唯一"日期"标识符
+  // 格式：copy-YYYYMMDD-timestamp，确保不会与真实日期冲突
+  const today = new Date();
+  const datePrefix =
+    today.getFullYear() +
+    String(today.getMonth() + 1).padStart(2, "0") +
+    String(today.getDate()).padStart(2, "0");
+  const uniqueId = `copy-${datePrefix}-${timestamp}`;
+
+  console.log(
+    `复制日期列表: ${rightClickedDate} (${currentDisplayName}) -> ${copyName} (ID: ${uniqueId})`
+  );
+
+  // 1. 复制任务到新的唯一标识符
+  fetch(CONFIG.API_BASE + "/copy-date", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      source_date: rightClickedDate,
+      target_date: uniqueId,
+    }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error(`复制任务失败: HTTP ${response.status}`);
+      }
+    })
+    .then((result) => {
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      console.log(`任务复制成功: ${result.message}`);
+      return uniqueId;
+    })
+    .then((newId) => {
+      // 2. 为新ID设置别名 - 显示为原始名称加上-copy
+      return fetch(CONFIG.API_BASE.replace("/todos", "/date-aliases"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: newId,
+          alias: copyName,
+        }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error(`设置别名失败: HTTP ${response.status}`);
+          }
+        })
+        .then((result) => {
+          if (result.error) {
+            throw new Error(result.error);
+          }
+          console.log(`别名设置成功: ${copyName}`);
+          return newId;
+        });
+    })
+    .then((newId) => {
+      // 3. 刷新日期列表显示新的副本
+      generateDateList();
+
+      // 4. 显示成功提示
+      showNotification(
+        `已复制 "${currentDisplayName}" 为 "${copyName}"`,
+        "success",
+        "复制成功"
+      );
+
+      // 5. 切换到新创建的副本
+      setTimeout(() => {
+        switchDate(newId);
+        console.log(`复制完成，已切换到新ID: ${newId}`);
+      }, 500); // 延迟一点确保列表已刷新
+    })
+    .catch((error) => {
+      showNotification("复制失败: " + error.message, "error", "复制失败");
+      console.error("复制任务失败:", error);
+    });
+
+  document.getElementById("context-menu").style.display = "none";
+}
+
+// 重命名日期列表功能 - 设置日期别名
+function renameDateList() {
+  if (!rightClickedDate) return;
+
+  // 获取当前显示的名称（可能是别名）
+  const currentDisplayName = document.querySelector(
+    `[data-date="${rightClickedDate}"] .date-name`
+  ).textContent;
+  const newName = prompt(`请输入新的名称:`, currentDisplayName);
+
+  if (!newName || newName.trim() === "") {
+    document.getElementById("context-menu").style.display = "none";
+    return;
+  }
+
+  console.log(`重命名日期 ${rightClickedDate} 为: ${newName.trim()}`);
+
+  // 调用API设置日期别名
+  fetch(CONFIG.API_BASE.replace("/todos", "/date-aliases"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      date: rightClickedDate,
+      alias: newName.trim(),
+    }),
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    })
+    .then((result) => {
+      if (result.error) {
+        showNotification("重命名失败: " + result.error, "error", "重命名失败");
+      } else {
+        console.log("重命名成功:", result.message);
+        // 重新生成日期列表以显示新别名
+        generateDateList();
+        // 显示成功提示
+        showNotification(
+          `已重命名为 "${newName.trim()}"`,
+          "success",
+          "重命名成功"
+        );
+      }
+    })
+    .catch((error) => {
+      showNotification("重命名失败: " + error.message, "error", "重命名失败");
+      console.error("设置日期别名失败:", error);
+    });
+
+  document.getElementById("context-menu").style.display = "none";
+}
+
+// 删除日期列表功能
+function deleteDateList() {
+  if (!rightClickedDate) return;
+
+  const displayName = document.querySelector(
+    `[data-date="${rightClickedDate}"] .date-name`
+  ).textContent;
+
+  if (!confirm(`确定要删除 "${displayName}" 的所有任务吗？此操作不可恢复！`)) {
+    document.getElementById("context-menu").style.display = "none";
+    return;
+  }
+
+  // 使用新的批量删除API
+  fetch(CONFIG.API_BASE + "/date/" + rightClickedDate, { method: "DELETE" })
+    .then((response) => {
+      console.log("删除响应状态:", response.status, response.statusText);
+      console.log("响应是否OK:", response.ok);
+
+      if (response.ok) {
+        return response.json();
+      } else {
+        // 记录详细的错误信息
+        return response.text().then((text) => {
+          console.error("删除失败响应内容:", text);
+          throw new Error(
+            `删除失败: ${response.status} ${response.statusText} - ${text}`
+          );
+        });
+      }
+    })
+    .then((result) => {
+      console.log("删除成功响应:", result);
+
+      // 删除成功后，刷新日期列表（让被删除的日期从左侧消失）
+      generateDateList();
+
+      // 如果删除的是当前日期，切换到今天
+      if (rightClickedDate === currentDate) {
+        const today = new Date().toISOString().split("T")[0];
+        switchDate(today);
+      }
+
+      // 显示删除成功提示
+      showNotification(
+        `已删除 "${displayName}" 的所有任务`,
+        "success",
+        "删除成功"
+      );
+      console.log("删除成功:", result.message);
+    })
+    .catch((error) => {
+      console.error("删除任务失败详细信息:", error);
+      showNotification("删除失败: " + error.message, "error", "删除失败");
+    });
+
+  document.getElementById("context-menu").style.display = "none";
+}
+// 置顶/取消置顶日期列表功能
+function togglePinDateList() {
+  if (!rightClickedDate) return;
+
+  const displayName = document.querySelector(
+    `[data-date="${rightClickedDate}"] .date-name`
+  ).textContent;
+
+  if (pinnedDates.has(rightClickedDate)) {
+    // 取消置顶
+    pinnedDates.delete(rightClickedDate);
+    showNotification(`已取消置顶 "${displayName}"`, "success", "取消置顶");
+    console.log(`取消置顶日期: ${rightClickedDate}`);
+  } else {
+    // 置顶
+    pinnedDates.add(rightClickedDate);
+    showNotification(`已置顶 "${displayName}"`, "success", "置顶成功");
+    console.log(`置顶日期: ${rightClickedDate}`);
+  }
+
+  // 保存置顶状态到本地存储
+  savePinnedDates();
+
+  // 重新生成日期列表以反映置顶状态
+  generateDateList();
+
+  document.getElementById("context-menu").style.display = "none";
+}
+
+// 保存置顶状态到本地存储
+function savePinnedDates() {
+  try {
+    localStorage.setItem("pinnedDates", JSON.stringify([...pinnedDates]));
+  } catch (error) {
+    console.error("保存置顶状态失败:", error);
+  }
+}
+
+// 从本地存储加载置顶状态
+function loadPinnedDates() {
+  try {
+    const saved = localStorage.getItem("pinnedDates");
+    if (saved) {
+      const dates = JSON.parse(saved);
+      pinnedDates = new Set(dates);
+    }
+  } catch (error) {
+    console.error("加载置顶状态失败:", error);
+    pinnedDates = new Set();
+  }
+}
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\loading.js
+内容:
+/**
+ * 加载状态管理
+ */
+
+class LoadingManager {
+  constructor() {
+    this.loadingCount = 0;
+    this.createLoadingElement();
+  }
+
+  createLoadingElement() {
+    // 创建全局加载指示器
+    const loadingDiv = document.createElement("div");
+    loadingDiv.id = "global-loading";
+    loadingDiv.className = "loading-overlay";
+    loadingDiv.innerHTML = `
+      <div class="loading-spinner">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">加载中...</span>
+        </div>
+        <div class="loading-text">加载中...</div>
+      </div>
+    `;
+    loadingDiv.style.display = "none";
+    document.body.appendChild(loadingDiv);
+  }
+
+  show(message = "加载中...") {
+    this.loadingCount++;
+    const loadingElement = document.getElementById("global-loading");
+    const textElement = loadingElement.querySelector(".loading-text");
+    if (textElement) {
+      textElement.textContent = message;
+    }
+    loadingElement.style.display = "flex";
+  }
+
+  hide() {
+    this.loadingCount = Math.max(0, this.loadingCount - 1);
+    if (this.loadingCount === 0) {
+      const loadingElement = document.getElementById("global-loading");
+      loadingElement.style.display = "none";
+    }
+  }
+
+  // 包装fetch请求，自动显示/隐藏加载状态
+  async fetchWithLoading(url, options = {}, message = "加载中...") {
+    this.show(message);
+    try {
+      const response = await fetch(url, options);
+      return response;
+    } finally {
+      this.hide();
+    }
+  }
+}
+
+// 创建全局加载管理器实例
+const loadingManager = new LoadingManager();
+
+// 数据缓存管理
+class CacheManager {
+  constructor() {
+    this.cache = new Map();
+    this.cacheTimeout = 5 * 60 * 1000; // 5分钟缓存
+  }
+
+  set(key, data) {
+    this.cache.set(key, {
+      data: data,
+      timestamp: Date.now(),
+    });
+  }
+
+  get(key) {
+    const cached = this.cache.get(key);
+    if (!cached) return null;
+
+    // 检查是否过期
+    if (Date.now() - cached.timestamp > this.cacheTimeout) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return cached.data;
+  }
+
+  clear() {
+    this.cache.clear();
+  }
+
+  // 清除特定前缀的缓存
+  clearByPrefix(prefix) {
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key);
+      }
+    }
+  }
+}
+
+// 创建全局缓存管理器实例
+const cacheManager = new CacheManager();
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\main.js
+内容:
+/**
+ * 主应用初始化和事件绑定
+ */
+
+// 表单提交事件
+document.getElementById("add-form").onsubmit = function (e) {
+  e.preventDefault();
+  const content = document.getElementById("new-todo").value.trim();
+  if (!content) return;
+  fetch(CONFIG.API_BASE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content, date: currentDate }),
+  }).then(() => {
+    document.getElementById("new-todo").value = "";
+    fetchTodos();
+  });
+};
+
+// 点击其他地方隐藏右键菜单
+document.addEventListener("click", function () {
+  document.getElementById("context-menu").style.display = "none";
+});
+
+// 支持回车键搜索
+document
+  .getElementById("search-input")
+  .addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      searchTodos();
+    }
+  });
+
+// 初始化新任务输入框
+const newTodoTextarea = document.getElementById("new-todo");
+setupTextarea(newTodoTextarea);
+
+// 应用初始化
+function initApp() {
+  // 加载置顶状态
+  loadPinnedDates();
+
+  // 生成日期列表
+  generateDateList();
+
+  // 设置初始标题
+  const title = document.getElementById("current-date-title");
+  title.textContent = `${formatDateForDisplay(currentDate)} Todo`;
+
+  // 加载当前日期的todos
+  fetchTodos();
+}
+
+// 页面加载完成后初始化
+document.addEventListener("DOMContentLoaded", function () {
+  initApp();
+});
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\search.js
+内容:
+/**
+ * 搜索相关功能
+ */
+
+function searchTodos() {
+  const searchTerm = document.getElementById("search-input").value.trim();
+  if (!searchTerm) {
+    alert("请输入搜索关键词");
+    return;
+  }
+
+  isSearchMode = true;
+  document.getElementById("clear-search-btn").style.display = "inline-block";
+
+  // 获取所有日期的todos进行搜索
+  fetchAllTodos().then(() => {
+    const filteredTodos = allTodos.filter((todo) =>
+      todo.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    displaySearchResults(filteredTodos, searchTerm);
+  });
+}
+
+function clearSearch() {
+  isSearchMode = false;
+  document.getElementById("search-input").value = "";
+  document.getElementById("clear-search-btn").style.display = "none";
+
+  // 恢复当前日期的显示
+  const title = document.getElementById("current-date-title");
+  title.textContent = `${formatDateForDisplay(currentDate)} Todo`;
+
+  fetchTodos();
+}
+
+function fetchAllTodos() {
+  // 获取所有日期的todos
+  return fetch(CONFIG.API_BASE + "/counts")
+    .then((r) => r.json())
+    .then((counts) => {
+      const promises = Object.keys(counts).map((date) =>
+        fetch(CONFIG.API_BASE + "?date=" + date).then((r) => r.json())
+      );
+
+      return Promise.all(promises).then((results) => {
+        allTodos = results.flat();
+      });
+    });
+}
+
+function displaySearchResults(filteredTodos, searchTerm) {
+  const list = document.getElementById("todo-list");
+  const title = document.getElementById("current-date-title");
+
+  title.textContent = `搜索结果: "${searchTerm}" (${filteredTodos.length}条)`;
+
+  list.innerHTML = "";
+
+  if (filteredTodos.length === 0) {
+    list.innerHTML =
+      '<li class="list-group-item text-center text-muted">未找到匹配的任务</li>';
+    return;
+  }
+
+  filteredTodos.forEach((todo) => {
+    const li = document.createElement("li");
+    li.className = "list-group-item";
+    let contentClass = "flex-grow-1 todo-content";
+    if (todo.completed) contentClass += " todo-completed";
+
+    // 高亮搜索关键词
+    const highlightedContent = todo.content.replace(
+      new RegExp(searchTerm, "gi"),
+      `<mark>${searchTerm}</mark>`
+    );
+
+    li.innerHTML = `
+      <span class="${contentClass}" ondblclick="toggleComplete(${
+      todo.id
+    })" id="content-${todo.id}">${highlightedContent}</span>
+      <span class="todo-dates">${formatDateForDisplay(todo.date)} | ${
+      todo.completed
+        ? "完成: " + formatDate(todo.completed_at)
+        : "创建: " + formatDate(todo.created_at)
+    }</span>
+      <div class="todo-actions">
+          <button class="btn btn-sm btn-outline-secondary" onclick="copyTodoContent(${
+            todo.id
+          }, this)">复制</button>
+          <button class="btn btn-sm btn-outline-secondary" onclick="editTodo(${
+            todo.id
+          })">修改</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteTodo(${
+            todo.id
+          })">删除</button>
+      </div>
+    `;
+    li.style.display = "flex";
+    li.style.alignItems = "flex-start";
+    list.appendChild(li);
+  });
+}
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\sidebar.js
+内容:
+/**
+ * 侧边栏相关功能
+ */
+
+function generateDateList() {
+  const dateList = document.getElementById("date-list");
+  dateList.innerHTML = "";
+
+  // 获取所有有数据的日期（包括用户创建的副本）
+  fetch(CONFIG.API_BASE + "/counts")
+    .then((r) => r.json())
+    .then((counts) => {
+      // 获取所有有数据的日期
+      const allDates = Object.keys(counts);
+
+      // 只添加今天的日期（如果不存在的话），其他日期只有在有数据时才显示
+      const today = new Date().toISOString().split("T")[0];
+      if (!allDates.includes(today)) {
+        allDates.push(today);
+      }
+
+      // 分离置顶和非置顶的日期
+      const pinnedDatesList = allDates.filter((date) => pinnedDates.has(date));
+      const unpinnedDatesList = allDates.filter(
+        (date) => !pinnedDates.has(date)
+      );
+
+      // 置顶日期按时间排序（最新在前），非置顶日期也按时间排序
+      pinnedDatesList.sort((a, b) => new Date(b) - new Date(a));
+      unpinnedDatesList.sort((a, b) => new Date(b) - new Date(a));
+
+      // 合并列表：置顶的在前面
+      const sortedDates = [...pinnedDatesList, ...unpinnedDatesList];
+
+      // 获取日期别名
+      return fetch(CONFIG.API_BASE.replace("/todos", "/date-aliases"))
+        .then((r) => r.json())
+        .then((aliases) => {
+          sortedDates.forEach((dateStr) => {
+            const li = document.createElement("li");
+            li.className = "date-item";
+            if (dateStr === currentDate) {
+              li.classList.add("active");
+            }
+
+            // 如果是置顶的日期，添加置顶样式
+            if (pinnedDates.has(dateStr)) {
+              li.classList.add("pinned");
+            }
+
+            // 使用别名（如果存在）或默认的日期显示
+            const displayName =
+              aliases[dateStr] || formatDateForDisplay(dateStr);
+
+            // 根据是否置顶生成不同的HTML结构
+            if (pinnedDates.has(dateStr)) {
+              li.innerHTML = `
+                <span class="date-name">${displayName}</span>
+                <span class="pin-icon">📌</span>
+              `;
+            } else {
+              li.innerHTML = `
+                <span class="date-name">${displayName}</span>
+              `;
+            }
+
+            // 添加数据属性以便准确识别
+            li.dataset.date = dateStr;
+
+            li.onclick = () => switchDate(dateStr);
+
+            // 添加右键菜单事件
+            addContextMenuToDateItem(li, dateStr);
+
+            dateList.appendChild(li);
+          });
+
+          updateTodoCounts();
+        });
+    })
+    .catch((error) => {
+      console.error("获取日期列表失败:", error);
+      // 如果获取失败，使用默认的7天显示
+      const dates = [];
+      const baseDate = new Date();
+      for (let i = 0; i >= -7; i--) {
+        const date = new Date(baseDate);
+        date.setDate(baseDate.getDate() + i);
+        dates.push(date.toISOString().split("T")[0]);
+      }
+
+      dates.forEach((dateStr) => {
+        const li = document.createElement("li");
+        li.className = "date-item";
+        if (dateStr === currentDate) {
+          li.classList.add("active");
+        }
+
+        li.innerHTML = `
+          <span class="date-name">${formatDateForDisplay(dateStr)}</span>
+        `;
+
+        li.dataset.date = dateStr;
+        li.onclick = () => switchDate(dateStr);
+        addContextMenuToDateItem(li, dateStr);
+        dateList.appendChild(li);
+      });
+
+      updateTodoCounts();
+    });
+}
+
+function switchDate(dateStr) {
+  currentDate = dateStr;
+
+  // 更新侧边栏选中状态
+  document.querySelectorAll(".date-item").forEach((item) => {
+    item.classList.remove("active");
+  });
+
+  // 找到对应的日期项并设置为活跃状态
+  document.querySelectorAll(".date-item").forEach((item) => {
+    if (item.dataset.date === dateStr) {
+      item.classList.add("active");
+    }
+  });
+
+  // 获取别名并更新标题
+  fetch(CONFIG.API_BASE.replace("/todos", "/date-aliases"))
+    .then((r) => r.json())
+    .then((aliases) => {
+      const title = document.getElementById("current-date-title");
+      // 使用别名（如果存在）或默认的日期显示
+      const displayName = aliases[dateStr] || formatDateForDisplay(dateStr);
+      title.textContent = `${displayName} Todo`;
+    })
+    .catch((error) => {
+      console.error("获取日期别名失败:", error);
+      // 如果获取别名失败，使用默认显示
+      const title = document.getElementById("current-date-title");
+      title.textContent = `${formatDateForDisplay(dateStr)} Todo`;
+    });
+
+  // 重新加载该日期的todos
+  fetchTodos();
+}
+
+function updateTodoCounts() {
+  // 不再需要显示计数，保留函数以免其他地方调用出错
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const icon = document.getElementById("collapse-icon");
+  const mainContent = document.querySelector(".main-content");
+
+  sidebar.classList.toggle("collapsed");
+
+  if (sidebar.classList.contains("collapsed")) {
+    icon.textContent = "▶";
+    mainContent.style.marginLeft = "0";
+  } else {
+    icon.textContent = "◀";
+    mainContent.style.marginLeft = "0";
+  }
+}
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\todos.js
+内容:
+/**
+ * Todo 相关功能
+ */
+
+function fetchTodos() {
+  // 按日期筛选todos
+  fetch(CONFIG.API_BASE + "?date=" + currentDate)
+    .then((r) => r.json())
+    .then((data) => {
+      const list = document.getElementById("todo-list");
+      list.innerHTML = "";
+      data.reverse(); // 新增的 todo 显示在最上面
+      data.forEach((todo, idx) => {
+        const li = document.createElement("li");
+        li.className = "list-group-item";
+        let contentClass = "flex-grow-1 todo-content";
+        if (todo.completed) contentClass += " todo-completed";
+        li.innerHTML = `
+          <span class="${contentClass}" ondblclick="toggleComplete(${
+          todo.id
+        })" id="content-${todo.id}">${todo.content}</span>
+          <span class="todo-dates">${
+            todo.completed
+              ? "完成: " + formatDate(todo.completed_at)
+              : "创建: " + formatDate(todo.created_at)
+          }</span>
+          <div class="todo-actions">
+              <button class="btn btn-sm btn-outline-secondary" onclick="copyTodoContent(${
+                todo.id
+              }, this)">复制</button>
+              <button class="btn btn-sm btn-outline-secondary" onclick="editTodo(${
+                todo.id
+              })">修改</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="deleteTodo(${
+                todo.id
+              })">删除</button>
+          </div>
+        `;
+        li.style.display = "flex";
+        li.style.alignItems = "flex-start";
+        list.appendChild(li);
+      });
+
+      // 更新计数
+      updateTodoCounts();
+    });
+}
+
+function toggleComplete(id) {
+  fetch(CONFIG.API_BASE + "/" + id + "?date=" + currentDate, { method: "GET" })
+    .then((r) => r.json())
+    .then((todo) => {
+      const completed = !todo.completed;
+      fetch(CONFIG.API_BASE + "/" + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          completed,
+          date: currentDate,
+        }),
+      }).then(fetchTodos);
+    });
+}
+
+function editTodo(id) {
+  const span = document.getElementById("content-" + id);
+  const old = span.textContent;
+  const textarea = document.createElement("textarea");
+  textarea.value = old;
+  textarea.className = "form-control d-inline";
+  textarea.style.marginRight = "8px";
+  textarea.style.flex = "1 1 0%";
+  textarea.style.marginLeft = "0";
+  textarea.style.resize = "vertical";
+  textarea.style.minHeight = "38px";
+  textarea.rows = 1;
+
+  span.replaceWith(textarea);
+
+  // 设置textarea功能
+  setupTextarea(textarea);
+  textarea.focus();
+
+  // 选中所有文本
+  textarea.select();
+
+  textarea.onblur = function () {
+    fetch(CONFIG.API_BASE + "/" + id, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: textarea.value,
+        date: currentDate,
+      }),
+    }).then(fetchTodos);
+  };
+
+  // 重写键盘事件处理，支持Shift+Enter换行，Enter保存
+  textarea.onkeydown = function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      textarea.blur();
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      fetchTodos(); // 取消编辑，重新加载
+    }
+  };
+}
+
+function deleteTodo(id) {
+  fetch(CONFIG.API_BASE + "/" + id + "?date=" + currentDate, {
+    method: "DELETE",
+  }).then(fetchTodos);
+}
+
+function copyTodo(id) {
+  fetch(CONFIG.API_BASE + "/" + id + "/copy?date=" + currentDate, {
+    method: "POST",
+  }).then(fetchTodos);
+}
+
+function moveTodo(id, newOrder) {
+  fetch(CONFIG.API_BASE)
+    .then((r) => r.json())
+    .then((data) => {
+      if (newOrder < 0 || newOrder >= data.length) return;
+      fetch(CONFIG.API_BASE + "/move", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: id, order: newOrder }),
+      }).then(fetchTodos);
+    });
+}
+
+// 复制todo内容到剪贴板
+function copyTodoContent(id, buttonElement) {
+  const contentElement = document.getElementById("content-" + id);
+  const todoContent = contentElement.textContent;
+
+  // 使用现代剪贴板API
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard
+      .writeText(todoContent)
+      .then(() => {
+        showCopySuccess(buttonElement);
+      })
+      .catch(() => {
+        // 如果现代API失败，使用传统方法
+        fallbackCopyTextToClipboard(todoContent, buttonElement);
+      });
+  } else {
+    // 使用传统方法
+    fallbackCopyTextToClipboard(todoContent, buttonElement);
+  }
+}
+
+function exportCurrentDate() {
+  // 创建隐藏的下载链接，避免页面闪烁
+  const link = document.createElement("a");
+  link.href = CONFIG.API_BASE + "/export/" + currentDate;
+  link.download = `${formatDateForDisplay(currentDate).replace(
+    /\s+/g,
+    ""
+  )}-todo.md`;
+  link.style.display = "none";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  // 显示下载成功提示
+  showNotification(
+    `${formatDateForDisplay(currentDate)} 的任务已导出`,
+    "success",
+    "导出成功"
+  );
+}
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\static\js\utils.js
+内容:
+/**
+ * 工具函数
+ */
+
+function formatDate(dt) {
+  if (!dt) return "";
+  const d = new Date(dt);
+  if (isNaN(d)) return "";
+  // 直接使用本地时间格式化
+  return d.toLocaleTimeString("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function formatDateForDisplay(dateStr) {
+  // 避免时区问题，直接解析日期字符串
+  const [year, month, day] = dateStr.split("-");
+  const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+  // 始终显示具体的月日，不使用相对时间
+  return date.toLocaleDateString("zh-CN", {
+    month: "long",
+    day: "numeric",
+  });
+}
+
+// 处理textarea的自动调整高度和Shift+Enter换行
+function setupTextarea(textarea) {
+  // 自动调整高度
+  function adjustHeight() {
+    textarea.style.height = "auto";
+    textarea.style.height = Math.max(38, textarea.scrollHeight) + "px";
+  }
+
+  textarea.addEventListener("input", adjustHeight);
+
+  // 处理键盘事件
+  textarea.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (textarea.form) {
+        textarea.form.dispatchEvent(new Event("submit"));
+      }
+    }
+  });
+
+  // 初始调整
+  adjustHeight();
+}
+
+// 传统的复制方法（兼容性更好）
+function fallbackCopyTextToClipboard(text, buttonElement) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  textArea.style.top = "-999999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+
+  try {
+    const successful = document.execCommand("copy");
+    if (successful) {
+      showCopySuccess(buttonElement);
+    } else {
+      console.error("复制失败");
+    }
+  } catch (err) {
+    console.error("复制失败:", err);
+  }
+
+  document.body.removeChild(textArea);
+}
+
+// 显示复制成功状态
+function showCopySuccess(buttonElement) {
+  const originalText = buttonElement.textContent;
+  buttonElement.textContent = "已复制";
+  buttonElement.classList.remove("btn-outline-secondary");
+  buttonElement.classList.add("btn-success");
+
+  // 2秒后恢复原状
+  setTimeout(() => {
+    buttonElement.textContent = originalText;
+    buttonElement.classList.remove("btn-success");
+    buttonElement.classList.add("btn-outline-secondary");
+  }, 2000);
+}
+
+// 显示通知消息
+function showNotification(message, type = "success", title = "提示") {
+  const toast = document.getElementById("notification-toast");
+  const toastTitle = document.getElementById("toast-title");
+  const toastMessage = document.getElementById("toast-message");
+
+  // 设置消息内容
+  toastTitle.textContent = title;
+  toastMessage.textContent = message;
+
+  // 根据类型设置样式
+  toast.className = "toast";
+  if (type === "success") {
+    toast.classList.add("bg-success", "text-white");
+  } else if (type === "error") {
+    toast.classList.add("bg-danger", "text-white");
+  } else if (type === "warning") {
+    toast.classList.add("bg-warning", "text-dark");
+  } else {
+    toast.classList.add("bg-info", "text-white");
+  }
+
+  // 显示通知
+  const bsToast = new bootstrap.Toast(toast, {
+    autohide: true,
+    delay: 3000,
+  });
+  bsToast.show();
+}
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\templates\favicon.ico
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\templates\index.html
+内容:
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Flask Todo List</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <!-- 左侧菜单面板 -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3>Todo 文件</h3>
+        <button class="collapse-btn" onclick="toggleSidebar()">
+          <span id="collapse-icon">◀</span>
+        </button>
+      </div>
+      <ul class="date-list" id="date-list">
+        <!-- 日期列表将通过JavaScript动态生成 -->
+      </ul>
+    </div>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h1 class="mb-0" id="current-date-title">加载中...</h1>
+          <div class="d-flex align-items-center gap-3">
+            <button
+              class="btn btn-outline-secondary"
+              onclick="exportCurrentDate()"
+              style="
+                padding: 6px 8px;
+                font-size: 1.15rem;
+                min-width: 54px;
+                font-weight: normal;
+                line-height: 1.4;
+              "
+            >
+              导出
+            </button>
+            <div class="d-flex align-items-center gap-2">
+              <input
+                type="text"
+                class="form-control"
+                id="search-input"
+                placeholder="搜索任务..."
+                style="
+                  width: 300px;
+                  padding: 6px 8px;
+                  font-size: 1.15rem;
+                  font-weight: normal;
+                  line-height: 1.4;
+                "
+              />
+              <button
+                class="btn btn-outline-primary"
+                onclick="searchTodos()"
+                style="
+                  padding: 6px 8px;
+                  font-size: 1.15rem;
+                  min-width: 54px;
+                  font-weight: normal;
+                  line-height: 1.4;
+                "
+              >
+                搜索
+              </button>
+              <button
+                class="btn btn-outline-secondary"
+                onclick="clearSearch()"
+                id="clear-search-btn"
+                style="
+                  display: none;
+                  padding: 6px 8px;
+                  font-size: 1.15rem;
+                  min-width: 54px;
+                  font-weight: normal;
+                  line-height: 1.4;
+                "
+              >
+                清除
+              </button>
+            </div>
+          </div>
+        </div>
+        <form id="add-form" class="d-flex gap-3 mb-3">
+          <textarea
+            class="form-control"
+            id="new-todo"
+            placeholder="添加新任务 (Shift+Enter换行，Enter提交)"
+            autocomplete="off"
+            required
+            rows="2"
+            style="
+              resize: vertical;
+              min-height: 76px;
+              font-size: 1.2rem;
+              padding: 16px 20px;
+              flex: 1;
+            "
+          ></textarea>
+          <button
+            class="btn btn-primary"
+            type="submit"
+            style="
+              min-width: 120px;
+              font-size: 1.3rem;
+              font-weight: bold;
+              padding: 0;
+              height: 76px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            添加
+          </button>
+        </form>
+        <ul class="list-group" id="todo-list"></ul>
+      </div>
+    </div>
+
+    <!-- 右键菜单 -->
+    <div class="context-menu" id="context-menu">
+      <div
+        class="context-menu-item"
+        onclick="togglePinDateList()"
+        id="pin-menu-item"
+      >
+        置顶
+      </div>
+      <div class="context-menu-item" onclick="copyDateList()">复制列表</div>
+      <div class="context-menu-item" onclick="renameDateList()">重命名</div>
+      <div class="context-menu-item danger" onclick="deleteDateList()">
+        删除列表
+      </div>
+    </div>
+
+    <!-- 消息提示 -->
+    <div
+      class="toast-container position-fixed top-0 end-0 p-3"
+      style="z-index: 1050"
+    >
+      <div
+        id="notification-toast"
+        class="toast"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+      >
+        <div class="toast-header">
+          <strong class="me-auto" id="toast-title">提示</strong>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="toast"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="toast-body" id="toast-message">操作完成</div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 按依赖顺序加载JavaScript文件 -->
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/todos.js"></script>
+    <script src="/static/js/search.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/context-menu.js"></script>
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>
+
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\utils\api_response.py
+内容:
+"""
+统一的API响应格式
+"""
+from flask import jsonify
+from datetime import datetime
+from typing import Any, Optional
+
+class APIResponse:
+    """统一的API响应类"""
+    
+    @staticmethod
+    def success(data: Any = None, message: str = "操作成功", status_code: int = 200):
+        """成功响应"""
+        response = {
+            "success": True,
+            "data": data,
+            "message": message,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        return jsonify(response), status_code
+    
+    @staticmethod
+    def error(message: str, error_code: Optional[str] = None, status_code: int = 400, data: Any = None):
+        """错误响应"""
+        response = {
+            "success": False,
+            "message": message,
+            "error_code": error_code,
+            "data": data,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        return jsonify(response), status_code
+    
+    @staticmethod
+    def not_found(message: str = "资源未找到"):
+        """404响应"""
+        return APIResponse.error(message, "NOT_FOUND", 404)
+    
+    @staticmethod
+    def server_error(message: str = "服务器内部错误"):
+        """500响应"""
+        return APIResponse.error(message, "INTERNAL_ERROR", 500)
+    
+    @staticmethod
+    def validation_error(message: str = "输入数据无效"):
+        """验证错误响应"""
+        return APIResponse.error(message, "VALIDATION_ERROR", 400)
+
+class TodoAppException(Exception):
+    """自定义异常类"""
+    
+    def __init__(self, message: str, error_code: Optional[str] = None, status_code: int = 400):
+        self.message = message
+        self.error_code = error_code
+        self.status_code = status_code
+        super().__init__(self.message)
+    
+    def to_response(self):
+        """转换为API响应"""
+        return APIResponse.error(self.message, self.error_code, self.status_code)
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\utils\validators.py
+内容:
+"""
+输入验证工具
+"""
+import re
+from datetime import datetime
+from functools import wraps
+from flask import request
+from utils.api_response import APIResponse, TodoAppException
+
+def validate_json(*required_fields):
+    """验证JSON请求数据的装饰器"""
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not request.is_json:
+                return APIResponse.validation_error("请求必须是JSON格式")
+            
+            data = request.get_json()
+            if not data:
+                return APIResponse.validation_error("请求数据不能为空")
+            
+            # 检查必需字段
+            missing_fields = []
+            for field in required_fields:
+                if field not in data or not data[field]:
+                    missing_fields.append(field)
+            
+            if missing_fields:
+                return APIResponse.validation_error(f"缺少必需字段: {', '.join(missing_fields)}")
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+def validate_date_format(date_str: str) -> bool:
+    """验证日期格式 YYYY-MM-DD"""
+    if not date_str:
+        return False
+    
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+def validate_content(content: str) -> str:
+    """验证任务内容"""
+    if not content or not content.strip():
+        raise TodoAppException("任务内容不能为空", "EMPTY_CONTENT")
+    
+    content = content.strip()
+    if len(content) > 500:
+        raise TodoAppException("任务内容不能超过500个字符", "CONTENT_TOO_LONG")
+    
+    # 检查是否包含恶意脚本
+    if re.search(r'<script|javascript:|on\w+\s*=', content, re.IGNORECASE):
+        raise TodoAppException("任务内容包含不允许的字符", "INVALID_CONTENT")
+    
+    return content
+
+def validate_alias(alias: str) -> str:
+    """验证别名"""
+    if not alias or not alias.strip():
+        raise TodoAppException("别名不能为空", "EMPTY_ALIAS")
+    
+    alias = alias.strip()
+    if len(alias) > 100:
+        raise TodoAppException("别名不能超过100个字符", "ALIAS_TOO_LONG")
+    
+    # 检查是否包含恶意脚本
+    if re.search(r'<script|javascript:|on\w+\s*=', alias, re.IGNORECASE):
+        raise TodoAppException("别名包含不允许的字符", "INVALID_ALIAS")
+    
+    return alias
+
+def validate_date_param(f):
+    """验证日期参数的装饰器"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        date = request.args.get('date')
+        if date and not validate_date_format(date):
+            return APIResponse.validation_error("日期格式错误，请使用 YYYY-MM-DD 格式")
+        return f(*args, **kwargs)
+    return decorated_function
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\效果图\a1.png
+内容: [无法作为文本读取，可能是二进制文件]
+
+完整的路径: C:\Users\Administrator\Work\flask_todo_app\效果图\a2.png
+内容: [无法作为文本读取，可能是二进制文件]

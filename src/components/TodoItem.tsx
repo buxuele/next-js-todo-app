@@ -66,6 +66,9 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
     [todo.content]
   );
 
+  // Handle copy todo (duplicate todo on same date) - Currently using clipboard copy only
+  // Individual todo duplication functionality can be added later if needed
+
   // Handle delete
   const handleDelete = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -174,30 +177,45 @@ export default function TodoItem({ todo, onUpdate, onDelete }: TodoItemProps) {
       <div className={styles.todoActions}>
         <button
           onClick={handleCopyToClipboard}
-          className={styles.copyButton}
+          className={styles.actionButton}
           title="Copy to clipboard"
         >
-          📋
+          复制
+        </button>
+
+        <button
+          onClick={handleClick}
+          className={styles.actionButton}
+          title="Edit todo"
+        >
+          修改
         </button>
 
         <button
           onClick={handleDelete}
-          className={styles.deleteButton}
+          className={styles.actionButton}
           title="Delete todo"
         >
-          🗑️
+          删除
         </button>
 
         {showCopyFeedback && <div className={styles.copyFeedback}>Copied!</div>}
       </div>
 
       <div className={styles.todoMeta}>
-        <span className={styles.timestamp}>
-          {new Date(todo.createdAt).toLocaleTimeString()}
-        </span>
-        {todo.completed && todo.completedAt && (
-          <span className={styles.completedTime}>
-            ✓ {new Date(todo.completedAt).toLocaleTimeString()}
+        {todo.completed && todo.completedAt ? (
+          <span>
+            完成:{" "}
+            {new Date(todo.completedAt).toLocaleTimeString("zh-CN", {
+              hour12: false,
+            })}
+          </span>
+        ) : (
+          <span>
+            创建:{" "}
+            {new Date(todo.createdAt).toLocaleTimeString("zh-CN", {
+              hour12: false,
+            })}
           </span>
         )}
       </div>

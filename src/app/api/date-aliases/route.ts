@@ -11,13 +11,16 @@ export async function GET() {
       });
     });
 
-    return NextResponse.json(aliases);
+    // Convert to Flask format: { date: alias, ... }
+    const aliasMap: Record<string, string> = {};
+    aliases.forEach((alias) => {
+      aliasMap[alias.date] = alias.alias;
+    });
+
+    return NextResponse.json(aliasMap);
   } catch (error) {
     console.error("Error fetching date aliases:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch date aliases" },
-      { status: 500 }
-    );
+    return NextResponse.json({});
   }
 }
 
@@ -34,11 +37,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate date format
+    // Validate date format - accept both YYYY-MM-DD and copy-YYYYMMDD-timestamp formats
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(date)) {
+    const copyIdRegex = /^copy-\d{8}-\d+$/;
+
+    if (!dateRegex.test(date) && !copyIdRegex.test(date)) {
       return NextResponse.json(
-        { error: "Invalid date format. Use YYYY-MM-DD" },
+        {
+          error:
+            "Invalid date format. Use YYYY-MM-DD or copy-YYYYMMDD-timestamp",
+        },
         { status: 400 }
       );
     }
@@ -58,23 +66,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if todos exist for this date
-    const todosExist = await withRetry(async () => {
-      const count = await prisma.todo.count({
-        where: { date },
+    // For copy-* identifiers, allow creating aliases even without todos
+    // This supports the Flask behavior of copying empty lists
+    if (!date.startsWith("copy-")) {
+      // Check if todos exist for regular dates
+      const todosExist = await withRetry(async () => {
+        const count = await prisma.todo.count({
+          where: { date },
+        });
+        return count > 0;
       });
-      return count > 0;
-    });
 
-    if (!todosExist) {
-      return NextResponse.json(
-        { error: "Cannot create alias for date with no todos" },
-        { status: 400 }
-      );
+      if (!todosExist) {
+        return NextResponse.json(
+          { error: "Cannot create alias for date with no todos" },
+          { status: 400 }
+        );
+      }
     }
 
     // Create or update alias
-    const dateAlias = await withRetry(async () => {
+    await withRetry(async () => {
       return await prisma.dateAlias.upsert({
         where: { date },
         update: { alias: alias.trim() },
@@ -85,7 +97,7 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    return NextResponse.json(dateAlias);
+    return NextResponse.json({ message: "Date alias updated successfully" });
   } catch (error) {
     console.error("Error creating/updating date alias:", error);
     return NextResponse.json(
