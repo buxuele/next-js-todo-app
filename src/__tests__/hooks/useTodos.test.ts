@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { useTodos } from "@/hooks/useTodos";
 import { mockFetch, mockTodos } from "../utils/test-utils";
 
@@ -33,7 +33,7 @@ describe("useTodos Hook", () => {
   });
 
   it("handles fetch errors", async () => {
-    global.fetch = jest.fn(() =>
+    jest.spyOn(global, "fetch").mockImplementation(() =>
       Promise.resolve({
         ok: false,
         status: 500,
@@ -101,14 +101,16 @@ describe("useTodos Hook", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    await result.current.addTodo("New todo", "2025-07-26");
+    await act(async () => {
+      await result.current.addTodo("New todo", "2025-07-26");
+    });
 
     expect(result.current.todos).toContainEqual(newTodo);
   });
 
   it("handles add todo errors", async () => {
-    global.fetch = jest
-      .fn()
+    jest
+      .spyOn(global, "fetch")
       .mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve([]),
@@ -125,8 +127,15 @@ describe("useTodos Hook", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    await expect(result.current.addTodo("", "2025-07-26")).rejects.toThrow();
-    expect(result.current.error).toBe("Invalid content");
+    await act(async () => {
+      await expect(result.current.addTodo("", "2025-07-26")).rejects.toThrow(
+        "Invalid content"
+      );
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).toBe("Invalid content");
+    });
   });
 
   it("updates a todo", async () => {
@@ -144,7 +153,9 @@ describe("useTodos Hook", () => {
       expect(result.current.loading).toBe(false);
     });
 
-    await result.current.updateTodo(1, { content: "Updated content" });
+    await act(async () => {
+      await result.current.updateTodo(1, { content: "Updated content" });
+    });
 
     expect(result.current.todos[0]).toEqual(updatedTodo);
   });
@@ -165,14 +176,16 @@ describe("useTodos Hook", () => {
 
     expect(result.current.todos).toHaveLength(2);
 
-    await result.current.deleteTodo(1);
+    await act(async () => {
+      await result.current.deleteTodo(1);
+    });
 
     expect(result.current.todos).toHaveLength(1);
     expect(result.current.todos.find((todo) => todo.id === 1)).toBeUndefined();
   });
 
   it("clears error state", async () => {
-    global.fetch = jest.fn(() =>
+    jest.spyOn(global, "fetch").mockImplementation(() =>
       Promise.resolve({
         ok: false,
         status: 500,
@@ -186,7 +199,9 @@ describe("useTodos Hook", () => {
       expect(result.current.error).toBe("Failed to fetch todos");
     });
 
-    result.current.clearError();
+    act(() => {
+      result.current.clearError();
+    });
 
     expect(result.current.error).toBe(null);
   });
@@ -206,7 +221,9 @@ describe("useTodos Hook", () => {
 
     fetchMock.mockClear();
 
-    await result.current.refreshTodos();
+    await act(async () => {
+      await result.current.refreshTodos();
+    });
 
     expect(fetchMock).toHaveBeenCalledWith("/api/todos?date=2025-07-26");
   });
