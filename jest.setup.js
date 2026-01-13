@@ -1,3 +1,4 @@
+import "whatwg-fetch";
 import "@testing-library/jest-dom";
 
 // Mock Next.js router
@@ -23,9 +24,6 @@ jest.mock("next/navigation", () => ({
 // Mock environment variables
 process.env.DATABASE_URL = "postgresql://test:test@localhost:5432/test";
 process.env.NODE_ENV = "test";
-
-// Mock fetch globally
-global.fetch = jest.fn();
 
 // Mock window.alert, confirm, prompt
 global.alert = jest.fn();
@@ -57,4 +55,5 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
 // Clean up after each test
 afterEach(() => {
   jest.clearAllMocks();
+  jest.restoreAllMocks();
 });
