@@ -33,11 +33,13 @@ global.confirm = jest.fn(() => true);
 global.prompt = jest.fn(() => "test-input");
 
 // Mock clipboard API
-Object.assign(navigator, {
-  clipboard: {
+Object.defineProperty(navigator, "clipboard", {
+  value: {
     writeText: jest.fn(() => Promise.resolve()),
     readText: jest.fn(() => Promise.resolve("test")),
   },
+  configurable: true,
+  writable: true,
 });
 
 // Mock IntersectionObserver
