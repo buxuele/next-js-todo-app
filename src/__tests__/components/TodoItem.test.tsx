@@ -17,10 +17,12 @@ describe("TodoItem Component", () => {
 
   beforeEach(() => {
     // Mock clipboard API
-    Object.assign(navigator, {
-      clipboard: {
+    Object.defineProperty(navigator, "clipboard", {
+      value: {
         writeText: jest.fn(() => Promise.resolve()),
       },
+      configurable: true,
+      writable: true,
     });
   });
 
